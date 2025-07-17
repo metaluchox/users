@@ -20,6 +20,8 @@ export class FirestoreService {
       const userDoc = doc(this.firestore, 'users', firebaseUser.uid);
       const userSnapshot = await getDoc(userDoc);
 
+      console.log(userSnapshot)
+
       if (userSnapshot.exists()) {
         // Usuario existente, obtener información completa
         const existingUser = userSnapshot.data() as UserInterface;
@@ -37,25 +39,19 @@ export class FirestoreService {
         console.log('Usuario existente encontrado:', existingUser.email);
         return updatedUser;
       } else {
-        // Usuario nuevo, verificar si está permitido el registro
-        const registrationAllowed = await this.isUserRegistrationAllowed();
-        
-        if (!registrationAllowed) {
-          throw new Error('El registro de nuevos usuarios está deshabilitado. Solo usuarios registrados pueden acceder.');
-        }
-
-        // Crear nuevo usuario con estructura completa
+        // Usuario nuevo, crear y guardar en Firestore
+        console.log("Usuario nuevo, creando y guardando")
         const newUser: UserInterface = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
-          fullName: firebaseUser.displayName || '',
-          phone: '',
-          avatar: firebaseUser.photoURL || '',
-          isActive: true,
+          displayName: firebaseUser.displayName || '',
+          photoURL: firebaseUser.photoURL || '',
+          emailVerified: firebaseUser.emailVerified,
+          disabled: false,
           createdAt: new Date(),
           updatedAt: new Date(),
-          profileId: 'default_profile', // Asignar perfil por defecto
-          roleIds: ['default_role'] // Asignar rol por defecto
+          profileId: 'default_profile',
+          roleIds: ['default_role']
         };
 
         // Guardar en Firestore
@@ -71,34 +67,17 @@ export class FirestoreService {
   }
 
   async handleUserLogin(user: User): Promise<void> {
-    const userCollection = collection(this.firestore, 'user');
-    const userDoc = doc(userCollection, user.uid);
+    const userDoc = doc(this.firestore, 'users', user.uid);
     const userSnapshot = await getDoc(userDoc);
     const currentDate = new Date();
 
     if (userSnapshot.exists()) {
-      // Usuario existente, actualizar último login
+      // Usuario existente, actualizar timestamp
       await updateDoc(userDoc, {
-        lastLogin: currentDate,
-      });
-    } else {
-      // Usuario nuevo, verificar si está permitido el registro
-      const registrationAllowed = await this.isUserRegistrationAllowed();
-      
-      if (!registrationAllowed) {
-        throw new Error('El registro de nuevos usuarios está deshabilitado. Solo usuarios registrados pueden acceder.');
-      }
-      
-      // Si está permitido, crear el usuario
-      await setDoc(userDoc, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        createdAt: currentDate,
-        lastLogin: currentDate,
+        updatedAt: currentDate,
       });
     }
+    // Si no existe, getOrCreateUserInfo ya lo maneja
   }
 
   storeCompleteUserData(userInfo: UserInterface): void {
@@ -127,60 +106,6 @@ export class FirestoreService {
     }
   }
 
-  // Métodos para manejar la configuración de registro de usuarios
-  async setUserRegistrationConfig(allowRegistration: boolean, userEmail?: string): Promise<void> {
-    try {
-      const configDoc = doc(this.firestore, 'config', 'userRegistration');
-      await setDoc(configDoc, {
-        allowRegistration,
-        updatedAt: new Date().toISOString(),
-        updatedBy: userEmail || 'unknown'
-      });
-    } catch (error) {
-      console.error('Error al guardar configuración de registro:', error);
-      throw error;
-    }
-  }
-
-  async getUserRegistrationConfig(): Promise<boolean> {
-    try {
-      const configDoc = doc(this.firestore, 'config', 'userRegistration');
-      const configSnapshot = await getDoc(configDoc);
-      
-      if (configSnapshot.exists()) {
-        const data = configSnapshot.data();
-        return data['allowRegistration'] ?? true; // Por defecto permitir registro
-      } else {
-        // Si no existe el documento, crear uno por defecto
-        await this.setUserRegistrationConfig(true);
-        return true;
-      }
-    } catch (error) {
-      console.error('Error al obtener configuración de registro:', error);
-      return true; // En caso de error, permitir registro por defecto
-    }
-  }
-
-  async isUserRegistrationAllowed(): Promise<boolean> {
-    return await this.getUserRegistrationConfig();
-  }
-
-  async getSpecialEmails(): Promise<string[]> {
-    try {
-      const configDoc = doc(this.firestore, 'config', 'specialEmails');
-      const configSnapshot = await getDoc(configDoc);
-      
-      if (configSnapshot.exists()) {
-        const data = configSnapshot.data();
-        return data['emails'] || [];
-      } else {
-        return [];
-      }
-    } catch (error) {
-      console.error('Error al obtener emails especiales:', error);
-      return [];
-    }
-  }
 
   async updateUser(uid: string, userData: Partial<UserInterface>): Promise<void> {
     try {

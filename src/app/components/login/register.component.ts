@@ -149,7 +149,6 @@ export class RegisterComponent {
         const user = await this.firebaseService.registerWithEmailAndPassword(email, password);
         
         if (user) {
-          this.firebaseService.storeUserCredential({ user });
           this.successMessage = 'Cuenta creada exitosamente. Redirigiendo...';
           
           setTimeout(() => {

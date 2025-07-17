@@ -141,7 +141,6 @@ export class LoginComponent {
         const user = await this.firebaseService.loginWithEmailAndPassword(email, password);
         
         if (user) {
-          this.firebaseService.storeUserCredential({ user });
           this.router.navigate(['/user']);
         }
       } catch (error: any) {

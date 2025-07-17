@@ -23,6 +23,10 @@ export class FirebaseService {
     return this.authService.currentUser$;
   }
 
+  get auth() {
+    return this.authService.auth;
+  }
+
   get userData(): UserData {
     return this.authService.userData;
   }
@@ -49,13 +53,6 @@ export class FirebaseService {
 
   async registerWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
-      // Verificar si está permitido el registro
-      const registrationAllowed = await this.firestoreService.isUserRegistrationAllowed();
-      
-      if (!registrationAllowed) {
-        throw new Error('El registro de nuevos usuarios está deshabilitado. Solo usuarios registrados pueden acceder.');
-      }
-      
       const user = await this.authService.registerWithEmailAndPassword(email, password);
       // Crear información completa del usuario en Firestore
       const userInfo = await this.firestoreService.getOrCreateUserInfo(user);
@@ -115,21 +112,4 @@ export class FirebaseService {
     return this.firestoreService.getUserById(uid);
   }
 
-  // Métodos de configuración - delegados al FirestoreService
-  async setUserRegistrationConfig(allowRegistration: boolean): Promise<void> {
-    const userEmail = this.authService.getCurrentUser()?.email || undefined;
-    return this.firestoreService.setUserRegistrationConfig(allowRegistration, userEmail);
-  }
-
-  async getUserRegistrationConfig(): Promise<boolean> {
-    return this.firestoreService.getUserRegistrationConfig();
-  }
-
-  async isUserRegistrationAllowed(): Promise<boolean> {
-    return this.firestoreService.isUserRegistrationAllowed();
-  }
-
-  async getSpecialEmails(): Promise<string[]> {
-    return this.firestoreService.getSpecialEmails();
-  }
 }

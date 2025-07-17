@@ -1,61 +1,54 @@
-// interfaces/user.interface.ts
+// models/user.interface.ts
 export interface User {
   uid: string;
   email: string;
-  fullName: string;
-  phone?: string;
-  avatar?: string;
-  isActive: boolean;
+  displayName: string;
+  photoURL?: string;
+  emailVerified: boolean;
+  disabled: boolean;
   createdAt: Date;
   updatedAt: Date;
   profileId: string;
   roleIds: string[];
 }
 
-// interfaces/profile.interface.ts
+// models/profile.interface.ts
 export interface Profile {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  permissions: string[];
-}
-
-// interfaces/role.interface.ts
-export interface Role {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  permissions: string[];
-}
-
-// interfaces/permission.interface.ts
-export interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  module: string;
-  action: string; // 'create', 'read', 'update', 'delete'
-  resource: string; // 'users', 'products', 'sales', etc.
-}
-
-// types/auth.types.ts
-export type PermissionAction = 'create' | 'read' | 'update' | 'delete';
-export type SystemModule = 'users' | 'products' | 'sales' | 'reports' | 'settings';
-
-// interfaces/user-session.interface.ts
-export interface UserSession {
   uid: string;
-  email: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  address?: string;
+  department?: string;
+  position?: string;
+  birthDate?: Date;
   avatar?: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// models/role.interface.ts
+export interface Role {
+  uid: string;
+  name: string;
+  description: string;
+  permissions: Permission[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Permission {
+  uid: string;
+  name: string;
+  resource: string;
+  action: string; // 'create', 'read', 'update', 'delete'
+  description: string;
+}
+
+// models/user-with-details.interface.ts
+export interface UserWithDetails extends User {
   profile: Profile;
   roles: Role[];
-  permissions: string[];
-  isSuperAdmin: boolean;
 }
