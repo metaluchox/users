@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../../services/firebase.service';
 import { LoadingService } from '../../services/loading.service';
-import { UserData } from '../../interfaces/user-data';
+import { User as UserInterface } from './user.interface';
 import { ThemeToggleComponent } from '../shared/theme-toggle.component';
 
 @Component({
@@ -72,9 +72,13 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
                     <span class="font-medium text-gray-700 dark:text-gray-300">UID:</span>
                     <span class="ml-2 text-gray-600 dark:text-gray-400 text-xs">{{ userData.uid }}</span>
                   </div>
-                  <div *ngIf="userData.lastLogin">
-                    <span class="font-medium text-gray-700 dark:text-gray-300">Último acceso:</span>
-                    <span class="ml-2 text-gray-600 dark:text-gray-400 text-sm">{{ formatDate(userData.lastLogin) }}</span>
+                  <div *ngIf="userData.updatedAt">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Última actualización:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400 text-sm">{{ formatDate(userData.updatedAt) }}</span>
+                  </div>
+                  <div *ngIf="userData.roleIds && userData.roleIds.length > 0">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Roles:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400 text-sm">{{ userData.roleIds.join(', ') }}</span>
                   </div>
                 </div>
               </div>
@@ -107,7 +111,7 @@ export class UserComponent implements OnInit {
   private router = inject(Router);
   private loading = inject(LoadingService);
 
-  userData: UserData | null = null;
+  userData: UserInterface | null = null;
   isLoading: boolean = false;
 
   ngOnInit() {
@@ -115,23 +119,20 @@ export class UserComponent implements OnInit {
   }
 
   loadUserData() {
-    // Get user data from localStorage first
-    this.userData = this.firebaseService.getUserData();
+    // Get complete user data from localStorage
+    this.userData = this.firebaseService.getCompleteUserData();
     
     // Also listen to auth state changes
     this.firebaseService.currentUser$.subscribe(user => {
       if (user) {
         // Update userData if we have a Firebase user but no stored data
         if (!this.userData) {
-          this.userData = {
-            uid: user.uid,
-            email: user.email || '',
-            displayName: user.displayName || '',
-            photoURL: user.photoURL || '',
-            isAuthenticated: true,
-            lastLogin: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
+          // Try to get from Firestore if not in localStorage
+          this.firebaseService.getUserById(user.uid).then(userInfo => {
+            if (userInfo) {
+              this.userData = userInfo;
+            }
+          });
         }
       } else {
         // User is not authenticated, redirect to login
@@ -149,9 +150,9 @@ export class UserComponent implements OnInit {
     return name[0].toUpperCase();
   }
 
-  formatDate(dateString: string): string {
+  formatDate(dateInput: string | Date): string {
     try {
-      const date = new Date(dateString);
+      const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
       return date.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',

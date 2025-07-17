@@ -2,7 +2,6 @@ import { inject, Injectable } from '@angular/core';
 import { getAnalytics } from 'firebase/analytics';
 import { User } from 'firebase/auth';
 import { Observable } from 'rxjs';
-import { UserData } from '../interfaces/user-data';
 import { User as UserInterface } from '../components/user/user.interface';
 import { FirebaseAuthService } from './firebase-auth.service';
 import { FirestoreService } from './firestore.service';
@@ -27,16 +26,10 @@ export class FirebaseService {
     return this.authService.auth;
   }
 
-  get userData(): UserData {
-    return this.authService.userData;
-  }
 
   constructor() {}
 
   // Métodos de autenticación - delegados al AuthService
-  getUserData(): UserData | null {
-    return this.authService.getUserData();
-  }
 
   async loginWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {

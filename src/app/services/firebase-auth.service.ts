@@ -14,7 +14,6 @@ import {
 } from 'firebase/auth';
 import { environment } from '../../environments/environment';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { UserData } from '../interfaces/user-data';
 import { LoadingService } from './loading.service';
 
 @Injectable({
@@ -25,7 +24,6 @@ export class FirebaseAuthService {
   public auth: Auth = getAuth(this.app);
   private readonly loading = inject(LoadingService);
 
-  public userData!: UserData;
 
   private currentUserSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
   public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
@@ -36,23 +34,10 @@ export class FirebaseAuthService {
     });
   }
 
-  getUserData(): UserData | null {
-    const userDataString = localStorage.getItem('userData');
-    if (userDataString) {
-      try {
-        return JSON.parse(userDataString);
-      } catch (error) {
-        console.error('Error al parsear userData del localStorage:', error);
-        return null;
-      }
-    }
-    return null;
-  }
 
   async loginWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-      this.storeUserCredential(userCredential);
       return userCredential.user;
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
@@ -64,7 +49,6 @@ export class FirebaseAuthService {
   async registerWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-      this.storeUserCredential(userCredential);
       return userCredential.user;
     } catch (error) {
       console.error('Error al registrar usuario:', error);
@@ -83,8 +67,7 @@ export class FirebaseAuthService {
       
       try {
         const userCredential = await signInWithPopup(this.auth, provider);
-        this.storeUserCredential(userCredential);
-        
+          
         this.loading.stop();
         return userCredential.user;
       } catch (popupError: any) {
@@ -113,7 +96,6 @@ export class FirebaseAuthService {
       this.loading.start();
       await signOut(this.auth);
       this.loading.stop();
-      localStorage.removeItem('userData');
       localStorage.removeItem('completeUserData');
     } catch (error) {
       this.loading.stop();
@@ -130,25 +112,6 @@ export class FirebaseAuthService {
     return this.auth.currentUser;
   }
 
-  storeUserCredential(userCredential: any): void {
-    if (!userCredential?.user) {
-      console.error('Invalid user credential object');
-      return;
-    }
-
-    const { user } = userCredential;
-    this.userData = {
-      uid: user.uid,
-      email: user.email || '',
-      displayName: user.displayName || '',
-      photoURL: user.photoURL || '',
-      isAuthenticated: true,
-      lastLogin: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem('userData', JSON.stringify(this.userData));
-  }
 
   private handleAuthError(error: AuthError): void {
     const errorMessages: Record<string, string> = {
