@@ -98,7 +98,7 @@ export class FirebaseService {
         this.storeUserCredential(userCredential);
         await this.handleUserLogin(userCredential.user);
         
-        // aca implementar el llamado de la api para obenet mas informacion de ususario si ya existe y si no que cree y obtenga los datos con sus perfiles
+        // aca implementar el llamado de la api para obtener mas informacion de ususario si ya existe y si no que cree y obtenga los datos con sus perfiles
         this.loading.stop();
         return userCredential.user;
       } catch (popupError: any) {
