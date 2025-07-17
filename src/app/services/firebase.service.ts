@@ -76,7 +76,6 @@ export class FirebaseService {
       // Almacenar información completa del usuario
       this.firestoreService.storeCompleteUserData(userInfo);
       
-      await this.firestoreService.handleUserLogin(user);
       
       this.loading.stop();
       return user;

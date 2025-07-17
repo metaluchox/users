@@ -155,7 +155,7 @@ export class LoginComponent {
 
   onGoogleSuccess(user: any) {
     console.log('Google login successful:', user);
-    // Navigation is handled automatically by the btn-google component
+    this.router.navigate(['/user']);
   }
 
   onGoogleError(error: any) {

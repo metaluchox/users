@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { initializeApp } from 'firebase/app';
-import { collection, doc, getDoc, setDoc, getFirestore, updateDoc, Firestore } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { environment } from '../../environments/environment';
 import { User as UserInterface } from '../components/user/user.interface';
@@ -46,11 +46,8 @@ export class FirestoreService {
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || '',
           photoURL: firebaseUser.photoURL || '',
-          emailVerified: firebaseUser.emailVerified,
-          disabled: false,
           createdAt: new Date(),
           updatedAt: new Date(),
-          profileId: 'default_profile',
           roleIds: ['default_role']
         };
 
@@ -66,19 +63,6 @@ export class FirestoreService {
     }
   }
 
-  async handleUserLogin(user: User): Promise<void> {
-    const userDoc = doc(this.firestore, 'users', user.uid);
-    const userSnapshot = await getDoc(userDoc);
-    const currentDate = new Date();
-
-    if (userSnapshot.exists()) {
-      // Usuario existente, actualizar timestamp
-      await updateDoc(userDoc, {
-        updatedAt: currentDate,
-      });
-    }
-    // Si no existe, getOrCreateUserInfo ya lo maneja
-  }
 
   storeCompleteUserData(userInfo: UserInterface): void {
     try {
