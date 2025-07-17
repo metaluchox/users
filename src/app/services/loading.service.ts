@@ -6,7 +6,6 @@ import {BehaviorSubject} from 'rxjs';
     providedIn: 'root',
 })
 export class LoadingService {
-    private _customMessage = 'Espera un momento...';
     private _messageSubject = new BehaviorSubject<string>('');
     private timeoutRef: number | null = null;
 
@@ -25,14 +24,17 @@ export class LoadingService {
         this._messageSubject.next(message);
     }
 
+    // Inicia loader de fondo
     startBackground(taskId?: string) {
         this.ngxService.startBackground(taskId);
     }
 
+    // Detiene loader de fondo
     stopBackground(taskId?: string) {
         this.ngxService.stopBackground(taskId);
     }
 
+    // Inicia loader con mensaje personalizable
     start(opts?: { taskId?: string; message?: string }) {
         // Limpiar timeout anterior si existe
         this.clear();
@@ -41,6 +43,7 @@ export class LoadingService {
         this.ngxService.start(opts?.taskId);
     }
 
+    // Detiene loader y limpia mensajes
     stop(taskId?: string) {
         taskId ? this.ngxService.stopAll() : this.ngxService.stop(taskId);
 
@@ -51,6 +54,7 @@ export class LoadingService {
         this.clear();
     }
 
+    // Limpia timeouts pendientes
     clear() {
         if (this.timeoutRef) {
             clearTimeout(this.timeoutRef);

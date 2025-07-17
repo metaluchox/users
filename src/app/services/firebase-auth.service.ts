@@ -35,6 +35,7 @@ export class FirebaseAuthService {
   }
 
 
+  // Autenticación con email y contraseña
   async loginWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
@@ -46,6 +47,7 @@ export class FirebaseAuthService {
     }
   }
 
+  // Registro de nuevo usuario con email y contraseña
   async registerWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
@@ -57,6 +59,7 @@ export class FirebaseAuthService {
     }
   }
 
+  // Autenticación con Google mediante popup
   async loginWithGoogle(): Promise<User> {
     try {
       this.loading.start();
@@ -91,6 +94,7 @@ export class FirebaseAuthService {
     }
   }
 
+  // Cierra sesión y limpia datos locales
   async logout(): Promise<void> {
     try {
       this.loading.start();
@@ -104,15 +108,18 @@ export class FirebaseAuthService {
     }
   }
 
+  // Verifica si hay un usuario autenticado
   isAuthenticated(): boolean {
     return this.auth.currentUser !== null;
   }
 
+  // Obtiene el usuario actual de Firebase Auth
   getCurrentUser(): User | null {
     return this.auth.currentUser;
   }
 
 
+  // Maneja errores de autenticación y los traduce al español
   private handleAuthError(error: AuthError): void {
     const errorMessages: Record<string, string> = {
       'auth/invalid-email': 'El formato del correo electrónico no es válido',

@@ -118,6 +118,7 @@ export class UserComponent implements OnInit {
     this.loadUserData();
   }
 
+  // Carga datos del usuario desde localStorage o Firestore
   loadUserData() {
     // Get complete user data from localStorage
     this.userData = this.firebaseService.getCompleteUserData();
@@ -141,6 +142,7 @@ export class UserComponent implements OnInit {
     });
   }
 
+  // Obtiene iniciales del nombre para avatar
   getInitials(name: string): string {
     if (!name) return '?';
     const names = name.split(' ');
@@ -150,6 +152,7 @@ export class UserComponent implements OnInit {
     return name[0].toUpperCase();
   }
 
+  // Formatea fecha para mostrar en la UI
   formatDate(dateInput: string | Date): string {
     try {
       const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
@@ -165,6 +168,7 @@ export class UserComponent implements OnInit {
     }
   }
 
+  // Cierra sesión y redirige al login
   async logout() {
     try {
       this.isLoading = true;

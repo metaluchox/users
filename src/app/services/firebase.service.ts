@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { getAnalytics } from 'firebase/analytics';
 import { User } from 'firebase/auth';
 import { Observable } from 'rxjs';
 import { User as UserInterface } from '../components/user/user.interface';
@@ -15,7 +14,6 @@ export class FirebaseService {
   private readonly authService = inject(FirebaseAuthService);
   private readonly firestoreService = inject(FirestoreService);
   
-  public analytics = getAnalytics(this.authService.app);
 
   // Delegación de propiedades del servicio de autenticación
   get currentUser$(): Observable<User | null> {
@@ -31,6 +29,7 @@ export class FirebaseService {
 
   // Métodos de autenticación - delegados al AuthService
 
+  // Inicia sesión con email/contraseña y almacena datos del usuario
   async loginWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
       const user = await this.authService.loginWithEmailAndPassword(email, password);
@@ -44,6 +43,7 @@ export class FirebaseService {
     }
   }
 
+  // Registra nuevo usuario y crea su información en Firestore
   async registerWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
       const user = await this.authService.registerWithEmailAndPassword(email, password);
@@ -57,6 +57,7 @@ export class FirebaseService {
     }
   }
 
+  // Inicia sesión con Google y gestiona la información del usuario
   async loginWithGoogle(): Promise<User> {
     try {
       this.loading.start();
@@ -79,27 +80,33 @@ export class FirebaseService {
     }
   }
 
+  // Cierra sesión del usuario
   async logout(): Promise<void> {
     return this.authService.logout();
   }
 
+  // Verifica estado de autenticación
   isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
   }
 
+  // Obtiene usuario autenticado actual
   getCurrentUser(): User | null {
     return this.authService.getCurrentUser();
   }
 
   // Métodos de Firestore - delegados al FirestoreService
+  // Obtiene datos completos del usuario desde localStorage
   getCompleteUserData(): UserInterface | null {
     return this.firestoreService.getCompleteUserData();
   }
 
+  // Actualiza información del usuario
   async updateUser(uid: string, userData: Partial<UserInterface>): Promise<void> {
     return this.firestoreService.updateUser(uid, userData);
   }
 
+  // Busca usuario por ID
   async getUserById(uid: string): Promise<UserInterface | null> {
     return this.firestoreService.getUserById(uid);
   }

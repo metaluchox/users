@@ -1,26 +1,24 @@
-import { Injectable } from '@angular/core';
-import { initializeApp } from 'firebase/app';
+import { Injectable, inject } from '@angular/core';
 import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { environment } from '../../environments/environment';
 import { User as UserInterface } from '../components/user/user.interface';
+import { FirebaseAuthService } from './firebase-auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FirestoreService {
-  public app = initializeApp(environment.firebase);
-  public firestore: Firestore = getFirestore(this.app);
+  private authService = inject(FirebaseAuthService);
+  public firestore: Firestore = getFirestore(this.authService.app);
 
   constructor() {}
 
+  // Obtiene o crea la información del usuario en Firestore
   async getOrCreateUserInfo(firebaseUser: User): Promise<UserInterface> {
     try {
       // Verificar si el usuario ya existe en la base de datos
       const userDoc = doc(this.firestore, 'users', firebaseUser.uid);
       const userSnapshot = await getDoc(userDoc);
-
-      console.log(userSnapshot)
 
       if (userSnapshot.exists()) {
         // Usuario existente, obtener información completa
@@ -40,7 +38,6 @@ export class FirestoreService {
         return updatedUser;
       } else {
         // Usuario nuevo, crear y guardar en Firestore
-        console.log("Usuario nuevo, creando y guardando")
         const newUser: UserInterface = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
@@ -64,6 +61,7 @@ export class FirestoreService {
   }
 
 
+  // Almacena datos completos del usuario en localStorage
   storeCompleteUserData(userInfo: UserInterface): void {
     try {
       // Almacenar información completa del usuario en localStorage
@@ -73,6 +71,7 @@ export class FirestoreService {
     }
   }
 
+  // Recupera datos completos del usuario desde localStorage
   getCompleteUserData(): UserInterface | null {
     try {
       const userDataString = localStorage.getItem('completeUserData');
@@ -91,6 +90,7 @@ export class FirestoreService {
   }
 
 
+  // Actualiza datos del usuario en Firestore
   async updateUser(uid: string, userData: Partial<UserInterface>): Promise<void> {
     try {
       const userDoc = doc(this.firestore, 'users', uid);
@@ -104,6 +104,7 @@ export class FirestoreService {
     }
   }
 
+  // Obtiene usuario por ID desde Firestore
   async getUserById(uid: string): Promise<UserInterface | null> {
     try {
       const userDoc = doc(this.firestore, 'users', uid);

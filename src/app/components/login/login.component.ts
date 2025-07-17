@@ -117,7 +117,6 @@ export class LoginComponent {
   private firebaseService = inject(FirebaseService);
   private router = inject(Router);
   public loading = inject(LoadingService);
-  private ngxLoader = inject(NgxUiLoaderService);
 
   loginForm: FormGroup;
   errorMessage: string = '';
@@ -130,6 +129,7 @@ export class LoginComponent {
     });
   }
 
+  // Procesa el formulario de login
   async onSubmit() {
     if (this.loginForm.valid) {
       this.errorMessage = '';
@@ -153,11 +153,13 @@ export class LoginComponent {
     }
   }
 
+  // Maneja éxito del login con Google
   onGoogleSuccess(user: any) {
     console.log('Google login successful:', user);
     this.router.navigate(['/user']);
   }
 
+  // Maneja errores del login con Google
   onGoogleError(error: any) {
     this.errorMessage = error.message;
     console.error('Google login error:', error);
