@@ -124,9 +124,10 @@ export class FirestoreService {
     }
   }
 
-  // Obtiene todos los usuarios desde Firestore
+  // Obtiene todos los usuarios desde Firestore (requiere permisos de admin)
   async getAllUsers(): Promise<UserInterface[]> {
     try {
+
       const usersCollection = collection(this.firestore, 'users');
       const usersSnapshot = await getDocs(usersCollection);
       
@@ -168,6 +169,33 @@ export class FirestoreService {
       return createdUser;
     } catch (error) {
       console.error('Error al crear usuario:', error);
+      throw error;
+    }
+  }
+
+  // Método helper para hacer un usuario administrador (solo para development/setup)
+  async makeUserAdmin(uid: string): Promise<void> {
+    try {
+      const userDoc = doc(this.firestore, 'users', uid);
+      const userSnapshot = await getDoc(userDoc);
+      
+      if (!userSnapshot.exists()) {
+        throw new Error('Usuario no encontrado');
+      }
+      
+      const userData = userSnapshot.data() as UserInterface;
+      const currentRoles = userData.roleIds || [];
+      
+      if (!currentRoles.includes('admin_role')) {
+        const updatedRoles = [...currentRoles, 'admin_role'];
+        await updateDoc(userDoc, {
+          roleIds: updatedRoles,
+          updatedAt: new Date()
+        });
+        console.log(`Usuario ${uid} ahora tiene permisos de administrador`);
+      }
+    } catch (error) {
+      console.error('Error al hacer usuario administrador:', error);
       throw error;
     }
   }
