@@ -62,7 +62,7 @@ import { AddComponent } from './add.component';
               </div>
               <button
                 (click)="searchUsers()"
-                [disabled]="isLoading || !searchTerm?.trim()"
+                [disabled]="isLoading || !searchTerm.trim()"
                 class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md font-medium transition-colors duration-200"
               >
                 Buscar
@@ -196,7 +196,7 @@ export class ListComponent implements OnInit {
   }
 
   async searchUsers() {
-    if (!this.searchTerm?.trim()) {
+    if (!this.searchTerm.trim()) {
       return;
     }
 
