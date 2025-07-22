@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { FirestoreService } from '../../services/firestore.service';
 import { User } from './user.interface';
 import { ThemeToggleComponent } from '../shared/theme-toggle.component';
@@ -9,7 +10,7 @@ import { AddComponent } from './add.component';
 @Component({
   selector: 'app-list',
   standalone: true,
-  imports: [CommonModule, ThemeToggleComponent, AddComponent],
+  imports: [CommonModule, FormsModule, ThemeToggleComponent, AddComponent],
   template: `
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav class="bg-white dark:bg-gray-800 shadow">
@@ -46,6 +47,35 @@ import { AddComponent } from './add.component';
 
       <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div class="px-4 py-6 sm:px-0">
+          <!-- Search Form -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Buscar Usuarios</h2>
+            <div class="flex gap-4">
+              <div class="flex-1">
+                <input
+                  type="text"
+                  [(ngModel)]="searchTerm"
+                  placeholder="Buscar por email, nombre o teléfono..."
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                  (keyup.enter)="searchUsers()"
+                />
+              </div>
+              <button
+                (click)="searchUsers()"
+                [disabled]="isLoading || !searchTerm?.trim()"
+                class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md font-medium transition-colors duration-200"
+              >
+                Buscar
+              </button>
+              <button
+                (click)="clearSearch()"
+                [disabled]="isLoading"
+                class="px-6 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md font-medium transition-colors duration-200"
+              >
+                Limpiar
+              </button>
+            </div>
+          </div>
           <!-- Loading State -->
           <div *ngIf="isLoading" class="flex justify-center items-center py-12">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -136,10 +166,12 @@ import { AddComponent } from './add.component';
             </div>
             
             <!-- Empty State -->
-            <div *ngIf="users.length === 0" class="text-center py-12">
+            <div *ngIf="users.length === 0 && !isLoading" class="text-center py-12">
               <div class="text-gray-500 dark:text-gray-400">
-                <p class="text-lg font-medium">No hay usuarios disponibles</p>
-                <p class="mt-2">Los usuarios aparecerán aquí cuando se registren.</p>
+                <p *ngIf="!hasSearched" class="text-lg font-medium">Utiliza el buscador para encontrar usuarios</p>
+                <p *ngIf="!hasSearched" class="mt-2">Busca por email, nombre o teléfono.</p>
+                <p *ngIf="hasSearched" class="text-lg font-medium">No se encontraron usuarios</p>
+                <p *ngIf="hasSearched" class="mt-2">Intenta con un término de búsqueda diferente.</p>
               </div>
             </div>
           </div>
@@ -156,24 +188,38 @@ export class ListComponent implements OnInit {
   isLoading: boolean = false;
   errorMessage: string = '';
   showCreateForm: boolean = false;
+  searchTerm: string = '';
+  hasSearched: boolean = false;
 
   ngOnInit() {
-    this.loadUsers();
+    // Ya no cargamos todos los usuarios automáticamente
   }
 
-  async loadUsers() {
+  async searchUsers() {
+    if (!this.searchTerm?.trim()) {
+      return;
+    }
+
     try {
       this.isLoading = true;
       this.errorMessage = '';
       
-      this.users = await this.firestoreService.getAllUsers();
+      this.users = await this.firestoreService.searchUsers(this.searchTerm.trim());
+      this.hasSearched = true;
       
     } catch (error) {
-      console.error('Error loading users:', error);
-      this.errorMessage = 'Error al cargar los usuarios. Por favor, inténtalo de nuevo.';
+      console.error('Error searching users:', error);
+      this.errorMessage = 'Error al buscar usuarios. Por favor, inténtalo de nuevo.';
     } finally {
       this.isLoading = false;
     }
+  }
+
+  clearSearch() {
+    this.searchTerm = '';
+    this.users = [];
+    this.hasSearched = false;
+    this.errorMessage = '';
   }
 
   editUser(user: User) {

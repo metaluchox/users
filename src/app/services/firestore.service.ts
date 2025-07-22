@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore, collection, getDocs, addDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore, collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { User as UserInterface } from '../components/user/user.interface';
 import { FirebaseAuthService } from './firebase-auth.service';
@@ -169,6 +169,45 @@ export class FirestoreService {
       return createdUser;
     } catch (error) {
       console.error('Error al crear usuario:', error);
+      throw error;
+    }
+  }
+
+  // Busca usuarios por email, nombre o teléfono
+  async searchUsers(searchTerm: string): Promise<UserInterface[]> {
+    try {
+      if (!searchTerm || searchTerm.trim() === '') {
+        return [];
+      }
+
+      const usersCollection = collection(this.firestore, 'users');
+      const users: UserInterface[] = [];
+      
+      // Como Firestore no soporta búsqueda por texto completo, obtenemos todos los usuarios y filtramos
+      const usersSnapshot = await getDocs(usersCollection);
+      
+      const searchLower = searchTerm.toLowerCase().trim();
+      
+      usersSnapshot.forEach((doc) => {
+        const userData = doc.data() as UserInterface;
+        userData.createdAt = new Date(userData.createdAt);
+        userData.updatedAt = new Date(userData.updatedAt);
+        
+        // Buscar en email, displayName y phone
+        const email = (userData.email || '').toLowerCase();
+        const displayName = (userData.displayName || '').toLowerCase();
+        const phone = (userData.phone || '').toLowerCase();
+        
+        if (email.includes(searchLower) || 
+            displayName.includes(searchLower) || 
+            phone.includes(searchLower)) {
+          users.push(userData);
+        }
+      });
+      
+      return users;
+    } catch (error) {
+      console.error('Error al buscar usuarios:', error);
       throw error;
     }
   }
