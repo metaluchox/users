@@ -73,6 +73,9 @@ import { AddComponent } from './add.component';
                       Nombre
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Teléfono
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Rol
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -105,6 +108,9 @@ import { AddComponent } from './add.component';
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {{ user.displayName || 'Sin nombre' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                      {{ user.phone || 'Sin teléfono' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span *ngIf="user.roleIds && user.roleIds.length > 0" 
