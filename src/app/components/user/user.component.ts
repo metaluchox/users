@@ -288,7 +288,7 @@ export class UserComponent implements OnInit {
   profileForm: FormGroup = this.fb.group({
     displayName: ['', [Validators.required, Validators.minLength(2)]],
     phone: ['', [this.chilePhoneValidator]],
-    photoURL: ['', [Validators.pattern(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i)]]
+    photoURL: ['', [Validators.pattern(/^https?:\/\/.+/i)]]
   });
 
   ngOnInit() {
@@ -408,7 +408,7 @@ export class UserComponent implements OnInit {
         
         // Si estamos editando nuestro propio perfil, actualizar localStorage
         if (!this.isEditingOtherUser) {
-          localStorage.setItem('userData', JSON.stringify(updatedUserData));
+          localStorage.setItem('completeUserData', JSON.stringify(updatedUserData));
           this.userData = updatedUserData;
         } else {
           // Si estamos editando otro usuario, actualizar la referencia local
