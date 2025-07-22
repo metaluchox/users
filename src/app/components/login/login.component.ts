@@ -155,7 +155,6 @@ export class LoginComponent {
 
   // Maneja éxito del login con Google
   onGoogleSuccess(user: any) {
-    console.log('Google login successful:', user);
     this.router.navigate(['/user']);
   }
 
