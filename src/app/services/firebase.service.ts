@@ -32,12 +32,15 @@ export class FirebaseService {
   // Inicia sesión con email/contraseña y almacena datos del usuario
   async loginWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
+      this.loading.start();
       const user = await this.authService.loginWithEmailAndPassword(email, password);
       // Obtener información completa del usuario desde Firestore
       const userInfo = await this.firestoreService.getOrCreateUserInfo(user);
       this.firestoreService.storeCompleteUserData(userInfo);
+      this.loading.stop();
       return user;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al iniciar sesión:', error);
       throw error;
     }
@@ -46,12 +49,15 @@ export class FirebaseService {
   // Registra nuevo usuario y crea su información en Firestore
   async registerWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
+      this.loading.start();
       const user = await this.authService.registerWithEmailAndPassword(email, password);
       // Crear información completa del usuario en Firestore
       const userInfo = await this.firestoreService.getOrCreateUserInfo(user);
       this.firestoreService.storeCompleteUserData(userInfo);
+      this.loading.stop();
       return user;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al registrar usuario:', error);
       throw error;
     }

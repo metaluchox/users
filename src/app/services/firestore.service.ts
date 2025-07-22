@@ -3,12 +3,14 @@ import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore, collection, ge
 import { User } from 'firebase/auth';
 import { User as UserInterface } from '../components/user/user.interface';
 import { FirebaseAuthService } from './firebase-auth.service';
+import { LoadingService } from './loading.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FirestoreService {
   private authService = inject(FirebaseAuthService);
+  private loading = inject(LoadingService);
   public firestore: Firestore = getFirestore(this.authService.app);
 
   constructor() {}
@@ -16,6 +18,7 @@ export class FirestoreService {
   // Obtiene o crea la información del usuario en Firestore
   async getOrCreateUserInfo(firebaseUser: User): Promise<UserInterface> {
     try {
+      this.loading.start();
       // Verificar si el usuario ya existe en la base de datos
       const userDoc = doc(this.firestore, 'users', firebaseUser.uid);
       const userSnapshot = await getDoc(userDoc);
@@ -35,6 +38,7 @@ export class FirestoreService {
         });
 
         console.log('Usuario existente encontrado:', existingUser.email);
+        this.loading.stop();
         return updatedUser;
       } else {
         // Usuario nuevo, crear y guardar en Firestore
@@ -52,9 +56,11 @@ export class FirestoreService {
         await setDoc(userDoc, newUser);
         
         console.log('Nuevo usuario creado:', newUser.email);
+        this.loading.stop();
         return newUser;
       }
     } catch (error) {
+      this.loading.stop();
       console.error('Error al obtener o crear información del usuario:', error);
       throw error;
     }
@@ -93,12 +99,15 @@ export class FirestoreService {
   // Actualiza datos del usuario en Firestore
   async updateUser(uid: string, userData: Partial<UserInterface>): Promise<void> {
     try {
+      this.loading.start();
       const userDoc = doc(this.firestore, 'users', uid);
       await updateDoc(userDoc, {
         ...userData,
         updatedAt: new Date()
       });
+      this.loading.stop();
     } catch (error) {
+      this.loading.stop();
       console.error('Error al actualizar usuario:', error);
       throw error;
     }
@@ -107,6 +116,7 @@ export class FirestoreService {
   // Obtiene usuario por ID desde Firestore
   async getUserById(uid: string): Promise<UserInterface | null> {
     try {
+      this.loading.start();
       const userDoc = doc(this.firestore, 'users', uid);
       const userSnapshot = await getDoc(userDoc);
       
@@ -115,10 +125,13 @@ export class FirestoreService {
         // Convertir fechas de Timestamp a Date si es necesario
         userData.createdAt = new Date(userData.createdAt);
         userData.updatedAt = new Date(userData.updatedAt);
+        this.loading.stop();
         return userData;
       }
+      this.loading.stop();
       return null;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al obtener usuario por ID:', error);
       throw error;
     }
@@ -127,7 +140,7 @@ export class FirestoreService {
   // Obtiene todos los usuarios desde Firestore (requiere permisos de admin)
   async getAllUsers(): Promise<UserInterface[]> {
     try {
-
+      this.loading.start();
       const usersCollection = collection(this.firestore, 'users');
       const usersSnapshot = await getDocs(usersCollection);
       
@@ -140,8 +153,10 @@ export class FirestoreService {
         users.push(userData);
       });
       
+      this.loading.stop();
       return users;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al obtener todos los usuarios:', error);
       throw error;
     }
@@ -150,6 +165,7 @@ export class FirestoreService {
   // Crear nuevo usuario en Firestore
   async createUser(userData: Omit<UserInterface, 'uid' | 'createdAt' | 'updatedAt'>): Promise<UserInterface> {
     try {
+      this.loading.start();
       const newUser: Omit<UserInterface, 'uid'> = {
         ...userData,
         createdAt: new Date(),
@@ -166,8 +182,10 @@ export class FirestoreService {
       // Actualizar el documento con el uid generado
       await updateDoc(docRef, { uid: docRef.id });
 
+      this.loading.stop();
       return createdUser;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al crear usuario:', error);
       throw error;
     }
@@ -180,6 +198,7 @@ export class FirestoreService {
         return [];
       }
 
+      this.loading.start();
       const usersCollection = collection(this.firestore, 'users');
       const users: UserInterface[] = [];
       
@@ -205,8 +224,10 @@ export class FirestoreService {
         }
       });
       
+      this.loading.stop();
       return users;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al buscar usuarios:', error);
       throw error;
     }
@@ -215,6 +236,7 @@ export class FirestoreService {
   // Método helper para hacer un usuario administrador (solo para development/setup)
   async makeUserAdmin(uid: string): Promise<void> {
     try {
+      this.loading.start();
       const userDoc = doc(this.firestore, 'users', uid);
       const userSnapshot = await getDoc(userDoc);
       
@@ -233,7 +255,9 @@ export class FirestoreService {
         });
         console.log(`Usuario ${uid} ahora tiene permisos de administrador`);
       }
+      this.loading.stop();
     } catch (error) {
+      this.loading.stop();
       console.error('Error al hacer usuario administrador:', error);
       throw error;
     }

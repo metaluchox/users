@@ -38,9 +38,12 @@ export class FirebaseAuthService {
   // Autenticación con email y contraseña
   async loginWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
+      this.loading.start();
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
+      this.loading.stop();
       return userCredential.user;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al iniciar sesión:', error);
       this.handleAuthError(error as AuthError);
       throw error;
@@ -50,9 +53,12 @@ export class FirebaseAuthService {
   // Registro de nuevo usuario con email y contraseña
   async registerWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
+      this.loading.start();
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
+      this.loading.stop();
       return userCredential.user;
     } catch (error) {
+      this.loading.stop();
       console.error('Error al registrar usuario:', error);
       this.handleAuthError(error as AuthError);
       throw error;
