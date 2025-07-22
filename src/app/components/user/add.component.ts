@@ -2,7 +2,9 @@ import { Component, inject, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FirestoreService } from '../../services/firestore.service';
+import { FirebaseAuthService } from '../../services/firebase-auth.service';
 import { User } from './user.interface';
+import { updateProfile } from 'firebase/auth';
 
 @Component({
   selector: 'app-user-add',
@@ -87,6 +89,7 @@ import { User } from './user.interface';
 })
 export class AddComponent {
   private firestoreService = inject(FirestoreService);
+  private authService = inject(FirebaseAuthService);
 
   @Input() show: boolean = false;
   @Output() userCreated = new EventEmitter<User>();
@@ -109,20 +112,41 @@ export class AddComponent {
       this.isCreating = true;
       this.errorMessage = '';
 
-      // Convert roleIdsString to array
+      // Step 1: Create user in Firebase Authentication with "tito" password
+      const firebaseUser = await this.authService.registerWithEmailAndPassword(
+        this.newUser.email, 
+        'saturno'
+      );
+
+      // Step 2: Update Firebase Auth profile with display name if provided
+      if (this.newUser.displayName) {
+        await updateProfile(firebaseUser, {
+          displayName: this.newUser.displayName,
+          photoURL: this.newUser.photoURL || null
+        });
+      }
+
+      // Step 3: Use getOrCreateUserInfo to save to Firestore
+      const userInfo = await this.firestoreService.getOrCreateUserInfo(firebaseUser);
+
+      // Step 4: Update user info with additional data if provided
       const roleIds = this.roleIdsString 
         ? this.roleIdsString.split(',').map(role => role.trim()).filter(role => role.length > 0)
-        : ['user'];
+        : ['default_role'];
 
-      const userData = {
-        ...this.newUser,
-        roleIds
-      };
-
-      const createdUser = await this.firestoreService.createUser(userData);
+      if (this.newUser.phone || roleIds.length > 1 || roleIds[0] !== 'default_role') {
+        await this.firestoreService.updateUser(userInfo.uid, {
+          phone: this.newUser.phone,
+          roleIds: roleIds
+        });
+        
+        // Update the local userInfo object
+        userInfo.phone = this.newUser.phone;
+        userInfo.roleIds = roleIds;
+      }
       
       // Emit the created user and reset form
-      this.userCreated.emit(createdUser);
+      this.userCreated.emit(userInfo);
       this.resetForm();
       
     } catch (error) {
