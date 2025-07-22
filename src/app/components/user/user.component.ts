@@ -373,22 +373,6 @@ export class UserComponent implements OnInit {
     return name[0].toUpperCase();
   }
 
-  // Formatea fecha para mostrar en la UI
-  formatDate(dateInput: string | Date): string {
-    try {
-      const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
-      return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      return 'Fecha no disponible';
-    }
-  }
-
   // Validador personalizado para números de teléfono chilenos
   chilePhoneValidator(control: AbstractControl): ValidationErrors | null {
     if (!control.value || control.value.trim() === '') {
