@@ -4,72 +4,22 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FirebaseService } from '../../services/firebase.service';
 import { User as UserInterface } from './user.interface';
-import { ThemeToggleComponent } from '../shared/theme-toggle.component';
+import { MainNavComponent } from '../shared/main-nav.component';
 
 @Component({
   selector: 'app-user',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ThemeToggleComponent],
+  imports: [CommonModule, ReactiveFormsModule, MainNavComponent],
   template: `
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav class="bg-white dark:bg-gray-800 shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center">
-              <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
-                {{ isEditingOtherUser ? 'Editar Usuario' : 'Dashboard' }}
-              </h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <app-theme-toggle></app-theme-toggle>
-              <div *ngIf="userData" class="flex items-center space-x-3">
-                <img 
-                  *ngIf="userData.photoURL" 
-                  [src]="userData.photoURL" 
-                  [alt]="userData.displayName || userData.email"
-                  class="h-8 w-8 rounded-full"
-                />
-                <div *ngIf="!userData.photoURL" class="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center">
-                  <span class="text-white text-sm font-medium">
-                    {{ getInitials(userData.displayName || userData.email) }}
-                  </span>
-                </div>
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ userData.displayName || userData.email }}
-                </span>
-              </div>
-              <button
-                (click)="goToIndex()"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
-                Ir al Inicio
-              </button>
-              <button
-                *ngIf="!isEditingOtherUser"
-                (click)="goToList()"
-                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
-                Ver Lista
-              </button>
-              <button
-                *ngIf="isEditingOtherUser"
-                (click)="goToList()"
-                class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
-                Volver a Lista
-              </button>
-              <button
-                (click)="logout()"
-                [disabled]="isLoading"
-                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 disabled:opacity-50"
-              >
-                <span *ngIf="!isLoading">Cerrar Sesión</span>
-                <span *ngIf="isLoading">Cerrando...</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <app-main-nav
+        [title]="isEditingOtherUser ? 'Editar Usuario' : 'Dashboard'"
+        [userData]="userData"
+        [isLoading]="isLoading"
+        (goToProfile)="goToIndex()"
+        (goToList)="goToList()"
+        (logout)="logout()"
+      ></app-main-nav>
 
       <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div class="px-4 py-6 sm:px-0">
@@ -353,9 +303,9 @@ export class UserComponent implements OnInit {
     event.target.style.display = 'none';
   }
 
-  // Redirige al índice
+  // Redirige al perfil del usuario en sesión
   goToIndex() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/user']);
   }
 
   // Redirige a la lista

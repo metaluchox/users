@@ -3,40 +3,25 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FirestoreService } from '../../services/firestore.service';
+import { FirebaseService } from '../../services/firebase.service';
 import { User } from './user.interface';
-import { ThemeToggleComponent } from '../shared/theme-toggle.component';
+import { MainNavComponent } from '../shared/main-nav.component';
 import { AddComponent } from './add.component';
 
 @Component({
   selector: 'app-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ThemeToggleComponent, AddComponent],
+  imports: [CommonModule, FormsModule, MainNavComponent, AddComponent],
   template: `
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav class="bg-white dark:bg-gray-800 shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center">
-              <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Lista de Usuarios</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <app-theme-toggle></app-theme-toggle>
-              <button
-                (click)="showCreateForm = true"
-                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
-                Agregar Usuario
-              </button>
-              <button
-                (click)="goBack()"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-              >
-                Volver
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <app-main-nav
+        title="Lista de Usuarios"
+        [userData]="userData"
+        [isLoading]="isLoading"
+        (goToProfile)="goToProfile()"
+        (goToList)="goToProfile()"
+        (logout)="logout()"
+      ></app-main-nav>
 
       <!-- Add User Component -->
       <app-user-add 
@@ -44,6 +29,19 @@ import { AddComponent } from './add.component';
         (userCreated)="onUserCreated($event)"
         (cancelled)="onAddCancelled()">
       </app-user-add>
+
+      <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+          <div class="flex justify-end mb-6">
+            <button
+              (click)="showCreateForm = true"
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+            >
+              Agregar Usuario
+            </button>
+          </div>
+        </div>
+      </div>
 
       <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div class="px-4 py-6 sm:px-0">
@@ -182,9 +180,11 @@ import { AddComponent } from './add.component';
 })
 export class ListComponent implements OnInit {
   private firestoreService = inject(FirestoreService);
+  private firebaseService = inject(FirebaseService);
   private router = inject(Router);
 
   users: User[] = [];
+  userData: User | null = null;
   isLoading: boolean = false;
   errorMessage: string = '';
   showCreateForm: boolean = false;
@@ -192,7 +192,11 @@ export class ListComponent implements OnInit {
   hasSearched: boolean = false;
 
   ngOnInit() {
-    // Ya no cargamos todos los usuarios automáticamente
+    // Cargar datos del usuario en sesión
+    this.userData = this.firebaseService.getCompleteUserData();
+    if (!this.userData) {
+      this.router.navigate(['/login']);
+    }
   }
 
   async searchUsers() {
@@ -237,6 +241,20 @@ export class ListComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/user']);
+  }
+
+  goToProfile() {
+    this.router.navigate(['/user']);
+  }
+
+  async logout() {
+    try {
+      await this.firebaseService.logout();
+      this.router.navigate(['/login']);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      this.router.navigate(['/login']);
+    }
   }
 
   getInitials(name: string): string {
