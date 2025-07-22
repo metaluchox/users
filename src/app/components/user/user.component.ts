@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FirebaseService } from '../../services/firebase.service';
 import { User as UserInterface } from './user.interface';
 import { ThemeToggleComponent } from '../shared/theme-toggle.component';
@@ -197,12 +197,13 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
                     type="tel"
                     id="phone"
                     formControlName="phone"
+(input)="formatPhoneInput($event)"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
                     placeholder="+56 9 1234 5678"
                   />
-                  <div *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors?.['pattern']" 
+                  <div *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors?.['invalidChilePhone']" 
                        class="text-red-600 text-sm mt-1">
-                    Formato de teléfono inválido
+                    Ingrese un número de teléfono chileno válido: +56 9 seguido de 8 dígitos
                   </div>
                 </div>
 
@@ -286,7 +287,7 @@ export class UserComponent implements OnInit {
 
   profileForm: FormGroup = this.fb.group({
     displayName: ['', [Validators.required, Validators.minLength(2)]],
-    phone: ['', [Validators.pattern(/^\+?[\d\s\-\(\)]+$/)]],
+    phone: ['', [this.chilePhoneValidator]],
     photoURL: ['', [Validators.pattern(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i)]]
   });
 
@@ -474,6 +475,83 @@ export class UserComponent implements OnInit {
       });
     } catch (error) {
       return 'Fecha no disponible';
+    }
+  }
+
+  // Validador personalizado para números de teléfono chilenos
+  chilePhoneValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value || control.value.trim() === '') {
+      return null; // Campo opcional
+    }
+    
+    const phoneNumber = control.value.replace(/\s/g, ''); // Remover espacios
+    const chilePhonePattern = /^\+569\d{8}$/; // +569 seguido de exactamente 8 dígitos
+    
+    // Verificar que tenga exactamente el formato correcto
+    // +569XXXXXXXX debe tener exactamente 13 caracteres (sin espacios)
+    if (!chilePhonePattern.test(phoneNumber)) {
+      return { invalidChilePhone: true };
+    }
+    
+    return null;
+  }
+
+  // Formatea el input de teléfono automáticamente mientras se escribe
+  formatPhoneInput(event: any) {
+    const input = event.target;
+    let value = input.value.replace(/\D/g, ''); // Solo números
+    
+    // Limitar a máximo 11 dígitos (569 + 8 dígitos del número)
+    if (value.length > 11) {
+      value = value.substring(0, 11);
+    }
+    
+    let formattedValue = '';
+    
+    if (value.length === 0) {
+      formattedValue = '';
+    } else {
+      // Siempre empezar con +56 9
+      if (value.startsWith('569')) {
+        // Si el usuario escribió 569..., tomar solo los 8 dígitos siguientes
+        const phoneDigits = value.substring(3).substring(0, 8);
+        formattedValue = '+56 9 ' + this.formatNumberGroup(phoneDigits);
+      } else if (value.startsWith('56')) {
+        const remaining = value.substring(2);
+        if (remaining.startsWith('9')) {
+          // Si escribió 569..., tomar los siguientes 8 dígitos
+          const phoneDigits = remaining.substring(1).substring(0, 8);
+          formattedValue = '+56 9 ' + this.formatNumberGroup(phoneDigits);
+        } else {
+          // Si escribió 56 pero no sigue con 9, agregar el 9 y usar los dígitos
+          const phoneDigits = remaining.substring(0, 8);
+          formattedValue = '+56 9 ' + this.formatNumberGroup(phoneDigits);
+        }
+      } else if (value.startsWith('9')) {
+        // Si empezó con 9, tomar los siguientes 8 dígitos
+        const phoneDigits = value.substring(1).substring(0, 8);
+        formattedValue = '+56 9 ' + this.formatNumberGroup(phoneDigits);
+      } else {
+        // Para cualquier otro caso, agregar el prefijo y limitar a 8 dígitos
+        const phoneDigits = value.substring(0, 8);
+        formattedValue = '+56 9 ' + this.formatNumberGroup(phoneDigits);
+      }
+    }
+    
+    // Actualizar el valor del input y del form control
+    input.value = formattedValue;
+    this.profileForm.get('phone')?.setValue(formattedValue, { emitEvent: false });
+  }
+
+  // Ayuda a formatear grupos de números (ej: 1234 5678)
+  private formatNumberGroup(numbers: string): string {
+    if (numbers.length === 0) {
+      return '';
+    }
+    if (numbers.length <= 4) {
+      return numbers;
+    } else {
+      return numbers.substring(0, 4) + ' ' + numbers.substring(4, 8);
     }
   }
 
