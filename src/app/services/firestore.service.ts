@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore, collection, getDocs, addDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { User as UserInterface } from '../components/user/user.interface';
 import { FirebaseAuthService } from './firebase-auth.service';
@@ -120,6 +120,54 @@ export class FirestoreService {
       return null;
     } catch (error) {
       console.error('Error al obtener usuario por ID:', error);
+      throw error;
+    }
+  }
+
+  // Obtiene todos los usuarios desde Firestore
+  async getAllUsers(): Promise<UserInterface[]> {
+    try {
+      const usersCollection = collection(this.firestore, 'users');
+      const usersSnapshot = await getDocs(usersCollection);
+      
+      const users: UserInterface[] = [];
+      usersSnapshot.forEach((doc) => {
+        const userData = doc.data() as UserInterface;
+        // Convertir fechas de Timestamp a Date si es necesario
+        userData.createdAt = new Date(userData.createdAt);
+        userData.updatedAt = new Date(userData.updatedAt);
+        users.push(userData);
+      });
+      
+      return users;
+    } catch (error) {
+      console.error('Error al obtener todos los usuarios:', error);
+      throw error;
+    }
+  }
+
+  // Crear nuevo usuario en Firestore
+  async createUser(userData: Omit<UserInterface, 'uid' | 'createdAt' | 'updatedAt'>): Promise<UserInterface> {
+    try {
+      const newUser: Omit<UserInterface, 'uid'> = {
+        ...userData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const docRef = await addDoc(collection(this.firestore, 'users'), newUser);
+      
+      const createdUser: UserInterface = {
+        ...newUser,
+        uid: docRef.id
+      };
+
+      // Actualizar el documento con el uid generado
+      await updateDoc(docRef, { uid: docRef.id });
+
+      return createdUser;
+    } catch (error) {
+      console.error('Error al crear usuario:', error);
       throw error;
     }
   }
