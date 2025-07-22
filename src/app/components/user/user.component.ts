@@ -44,6 +44,12 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
                 Ir al Inicio
               </button>
               <button
+                (click)="goToList()"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >
+                Ver Lista
+              </button>
+              <button
                 (click)="logout()"
                 [disabled]="isLoading"
                 class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 disabled:opacity-50"
@@ -323,6 +329,11 @@ export class UserComponent implements OnInit {
   // Redirige al índice
   goToIndex() {
     this.router.navigate(['/']);
+  }
+
+  // Redirige a la lista
+  goToList() {
+    this.router.navigate(['/user/list']);
   }
 
   // Obtiene iniciales del nombre para avatar
