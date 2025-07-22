@@ -379,16 +379,31 @@ export class UserComponent implements OnInit {
         this.updateMessage = null;
 
         const formData = this.profileForm.value;
-        const updatedUserData = {
-          ...userToUpdate,
-          displayName: formData.displayName,
-          phone: formData.phone,
-          photoURL: formData.photoURL,
+        
+        // Crear objeto con solo los campos que se van a actualizar
+        const updateData: Partial<UserInterface> = {
           updatedAt: new Date()
         };
 
+        // Solo incluir campos que tienen valor, o eliminar si están vacíos
+        if (formData.displayName !== undefined) {
+          updateData.displayName = formData.displayName.trim() || '';
+        }
+        if (formData.phone !== undefined) {
+          updateData.phone = formData.phone.trim() || '';
+        }
+        if (formData.photoURL !== undefined) {
+          updateData.photoURL = formData.photoURL.trim() || '';
+        }
+
         // Actualizar en Firestore
-        // await this.firebaseService.updateUserProfile(userToUpdate.uid, updatedUserData);
+        await this.firebaseService.updateUser(userToUpdate.uid, updateData);
+
+        // Crear objeto completo para actualizar referencias locales
+        const updatedUserData = {
+          ...userToUpdate,
+          ...updateData
+        };
         
         // Si estamos editando nuestro propio perfil, actualizar localStorage
         if (!this.isEditingOtherUser) {
@@ -401,7 +416,7 @@ export class UserComponent implements OnInit {
 
         this.updateMessage = {
           type: 'success',
-          text: this.isEditingOtherUser ? 'Usuario actualizado exitosamente' : 'Perfil actualizado exitosamente'
+          text: this.isEditingOtherUser ? 'Usuario actualizado exitosamente en Firestore' : 'Perfil actualizado exitosamente en Firestore'
         };
 
         // Ocultar mensaje después de 3 segundos
@@ -410,10 +425,10 @@ export class UserComponent implements OnInit {
         }, 3000);
 
       } catch (error) {
-        console.error('Error updating profile:', error);
+        console.error('Error updating user in Firestore:', error);
         this.updateMessage = {
           type: 'error',
-          text: 'Error al actualizar. Inténtalo de nuevo.'
+          text: 'Error al actualizar en Firestore. Verifica tu conexión e inténtalo de nuevo.'
         };
       } finally {
         this.isUpdating = false;
