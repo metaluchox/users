@@ -1,9 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FirebaseService } from '../../services/firebase.service';
-import { LoadingService } from '../../services/loading.service';
 import { User as UserInterface } from './user.interface';
 import { ThemeToggleComponent } from '../shared/theme-toggle.component';
 
@@ -17,7 +16,9 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between h-16">
             <div class="flex items-center">
-              <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
+              <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
+                {{ isEditingOtherUser ? 'Editar Usuario' : 'Dashboard' }}
+              </h1>
             </div>
             <div class="flex items-center space-x-4">
               <app-theme-toggle></app-theme-toggle>
@@ -44,10 +45,18 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
                 Ir al Inicio
               </button>
               <button
+                *ngIf="!isEditingOtherUser"
                 (click)="goToList()"
                 class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
               >
                 Ver Lista
+              </button>
+              <button
+                *ngIf="isEditingOtherUser"
+                (click)="goToList()"
+                class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >
+                Volver a Lista
               </button>
               <button
                 (click)="logout()"
@@ -68,10 +77,42 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
             <!-- Información del Usuario -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
               <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                ¡Bienvenido a tu Dashboard!
+                {{ isEditingOtherUser ? 'Editando Usuario' : '¡Bienvenido a tu Dashboard!' }}
               </h2>
               
-              <div *ngIf="userData" class="mb-6">
+              <!-- Mostrar información del usuario a editar o del usuario en sesión -->
+              <div *ngIf="isEditingOtherUser && editingUser" class="mb-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Información del Usuario a Editar</h3>
+                <div class="space-y-3">
+                  <div>
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Email:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400">{{ editingUser.email }}</span>
+                  </div>
+                  <div *ngIf="editingUser.displayName">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Nombre:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400">{{ editingUser.displayName }}</span>
+                  </div>
+                  <div *ngIf="editingUser.phone">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Teléfono:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400">{{ editingUser.phone }}</span>
+                  </div>
+                  <div>
+                    <span class="font-medium text-gray-700 dark:text-gray-300">UID:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400 text-xs">{{ editingUser.uid }}</span>
+                  </div>
+                  <div *ngIf="editingUser.updatedAt">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Última actualización:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400 text-sm">{{ formatDate(editingUser.updatedAt) }}</span>
+                  </div>
+                  <div *ngIf="editingUser.roleIds && editingUser.roleIds.length > 0">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Roles:</span>
+                    <span class="ml-2 text-gray-600 dark:text-gray-400 text-sm">{{ editingUser.roleIds.join(', ') }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mostrar información del usuario en sesión cuando no estamos editando -->
+              <div *ngIf="!isEditingOtherUser && userData" class="mb-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Información del Usuario</h3>
                 <div class="space-y-3">
                   <div>
@@ -101,8 +142,11 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
                 </div>
               </div>
 
-              <p class="text-gray-600 dark:text-gray-400 mb-6">
+              <p *ngIf="!isEditingOtherUser" class="text-gray-600 dark:text-gray-400 mb-6">
                 Tu sesión está activa y todos los servicios de Firebase están funcionando correctamente.
+              </p>
+              <p *ngIf="isEditingOtherUser" class="text-gray-600 dark:text-gray-400 mb-6">
+                Estás editando el perfil de otro usuario. Realiza los cambios necesarios y guarda.
               </p>
               
               <div class="flex justify-center space-x-4">
@@ -121,7 +165,9 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
 
             <!-- Formulario de Actualización de Perfil -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Actualizar Perfil</h3>
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                {{ isEditingOtherUser ? 'Editar Usuario' : 'Actualizar Perfil' }}
+              </h3>
               
               <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-4">
                 <!-- Nombre -->
@@ -197,8 +243,8 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
                     [disabled]="profileForm.invalid || isUpdating"
                     class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
-                    <span *ngIf="!isUpdating">Actualizar Perfil</span>
-                    <span *ngIf="isUpdating">Actualizando...</span>
+                    <span *ngIf="!isUpdating">{{ isEditingOtherUser ? 'Guardar Cambios' : 'Actualizar Perfil' }}</span>
+                    <span *ngIf="isUpdating">{{ isEditingOtherUser ? 'Guardando...' : 'Actualizando...' }}</span>
                   </button>
                   <button
                     type="button"
@@ -228,10 +274,12 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
 export class UserComponent implements OnInit {
   private firebaseService = inject(FirebaseService);
   private router = inject(Router);
-  private loading = inject(LoadingService);
+  private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
 
   userData: UserInterface | null = null;
+  editingUser: UserInterface | null = null;
+  isEditingOtherUser: boolean = false;
   isLoading: boolean = false;
   isUpdating: boolean = false;
   updateMessage: { type: 'success' | 'error', text: string } | null = null;
@@ -243,13 +291,22 @@ export class UserComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.loadUserData();
+    this.route.params.subscribe(params => {
+      if (params['uid']) {
+        this.loadUserForEdit(params['uid']);
+      } else {
+        this.loadUserData();
+      }
+    });
   }
 
   // Carga datos del usuario desde localStorage o Firestore
   loadUserData() {
-    // Get complete user data from localStorage
+    // Get complete user data from localStorage (usuario en sesión)
     this.userData = this.firebaseService.getCompleteUserData();
+    this.isEditingOtherUser = false;
+    this.editingUser = null;
+    
     if (this.userData) {
       this.initializeForm();
     } else {
@@ -257,13 +314,52 @@ export class UserComponent implements OnInit {
     }
   }
 
+  // Carga datos del usuario específico para editar
+  async loadUserForEdit(uid: string) {
+    try {
+      this.isLoading = true;
+      
+      // Cargar usuario en sesión para validaciones
+      this.userData = this.firebaseService.getCompleteUserData();
+      if (!this.userData) {
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      // Cargar usuario a editar
+      this.editingUser = await this.firebaseService.getUserById(uid);
+      
+      if (this.editingUser) {
+        this.isEditingOtherUser = true;
+        this.initializeForm();
+      } else {
+        this.updateMessage = {
+          type: 'error',
+          text: 'Usuario no encontrado'
+        };
+        setTimeout(() => {
+          this.router.navigate(['/user/list']);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error loading user for edit:', error);
+      this.updateMessage = {
+        type: 'error',
+        text: 'Error al cargar el usuario'
+      };
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   // Inicializa el formulario con los datos actuales del usuario
   initializeForm() {
-    if (this.userData) {
+    const userToEdit = this.isEditingOtherUser ? this.editingUser : this.userData;
+    if (userToEdit) {
       this.profileForm.patchValue({
-        displayName: this.userData.displayName || '',
-        phone: this.userData.phone || '',
-        photoURL: this.userData.photoURL || ''
+        displayName: userToEdit.displayName || '',
+        phone: userToEdit.phone || '',
+        photoURL: userToEdit.photoURL || ''
       });
     }
   }
@@ -276,32 +372,36 @@ export class UserComponent implements OnInit {
 
   // Actualiza el perfil del usuario
   async updateProfile() {
-    if (this.profileForm.valid && this.userData) {
+    const userToUpdate = this.isEditingOtherUser ? this.editingUser : this.userData;
+    if (this.profileForm.valid && userToUpdate) {
       try {
         this.isUpdating = true;
         this.updateMessage = null;
 
         const formData = this.profileForm.value;
         const updatedUserData = {
-          ...this.userData,
+          ...userToUpdate,
           displayName: formData.displayName,
           phone: formData.phone,
           photoURL: formData.photoURL,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date()
         };
 
         // Actualizar en Firestore
-        // await this.firebaseService.updateUserProfile(this.userData.uid, updatedUserData);
+        // await this.firebaseService.updateUserProfile(userToUpdate.uid, updatedUserData);
         
-        // Actualizar los datos locales
-        // this.userData = updatedUserData;
-        
-        // Actualizar en localStorage
-        localStorage.setItem('userData', JSON.stringify(updatedUserData));
+        // Si estamos editando nuestro propio perfil, actualizar localStorage
+        if (!this.isEditingOtherUser) {
+          localStorage.setItem('userData', JSON.stringify(updatedUserData));
+          this.userData = updatedUserData;
+        } else {
+          // Si estamos editando otro usuario, actualizar la referencia local
+          this.editingUser = updatedUserData;
+        }
 
         this.updateMessage = {
           type: 'success',
-          text: 'Perfil actualizado exitosamente'
+          text: this.isEditingOtherUser ? 'Usuario actualizado exitosamente' : 'Perfil actualizado exitosamente'
         };
 
         // Ocultar mensaje después de 3 segundos
@@ -313,7 +413,7 @@ export class UserComponent implements OnInit {
         console.error('Error updating profile:', error);
         this.updateMessage = {
           type: 'error',
-          text: 'Error al actualizar el perfil. Inténtalo de nuevo.'
+          text: 'Error al actualizar. Inténtalo de nuevo.'
         };
       } finally {
         this.isUpdating = false;

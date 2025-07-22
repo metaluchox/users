@@ -171,10 +171,7 @@ export class ListComponent implements OnInit {
   }
 
   editUser(user: User) {
-    // Navigate to edit user page or show edit modal
-    console.log('Editing user:', user);
-    // Implementation will depend on your routing strategy
-    // this.router.navigate(['/user/edit', user.uid]);
+    this.router.navigate(['/user/edit', user.uid]);
   }
 
   onUserCreated(user: User) {

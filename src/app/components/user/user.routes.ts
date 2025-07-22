@@ -10,5 +10,9 @@ export const routes: Routes = [
   {
     path: 'list',
     component: ListComponent
+  },
+  {
+    path: 'edit/:uid',
+    component: UserComponent
   }
 ];
