@@ -13,7 +13,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
   template: `
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
       <app-main-nav
-        [title]="isEditingOtherUser ? 'Editar Usuario' : 'Dashboard'"
+        [title]="isEditingOtherUser ? 'Editar Usuario' : 'Usuario'"
         [userData]="userData"
         [isLoading]="isLoading"
         (goToProfile)="goToIndex()"
@@ -107,13 +107,6 @@ import { MainNavComponent } from '../shared/main-nav.component';
                   >
                     <span *ngIf="!isUpdating">{{ isEditingOtherUser ? 'Guardar Cambios' : 'Actualizar Perfil' }}</span>
                     <span *ngIf="isUpdating">{{ isEditingOtherUser ? 'Guardando...' : 'Actualizando...' }}</span>
-                  </button>
-                  <button
-                    type="button"
-                    (click)="resetForm()"
-                    class="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-                  >
-                    Restablecer
                   </button>
                 </div>
               </form>
