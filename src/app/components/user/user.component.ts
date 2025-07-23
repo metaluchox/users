@@ -26,10 +26,20 @@ import { MainNavComponent } from '../shared/main-nav.component';
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Formulario de Actualización de Perfil -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                {{ isEditingOtherUser ? 'Editar Usuario' : 'Actualizar Perfil' }}
-              </h3>
-              
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                  {{ isEditingOtherUser ? 'Editar Usuario' : 'Actualizar Perfil' }}
+                </h3>
+                <!-- Vista previa de la imagen -->
+                <div *ngIf="profileForm.get('photoURL')?.value && profileForm.get('photoURL')?.valid">
+                  <img 
+                    [src]="profileForm.get('photoURL')?.value" 
+                    alt="Vista previa"
+                    class="h-12 w-12 rounded-full object-cover"
+                    (error)="onImageError($event)"
+                  />
+                </div>
+              </div>              
               <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-4">
                 <!-- Nombre -->
                 <div>
@@ -84,18 +94,6 @@ import { MainNavComponent } from '../shared/main-nav.component';
                        class="text-red-600 text-sm mt-1">
                     URL inválida
                   </div>
-                </div>
-
-                <!-- Vista previa de la imagen -->
-                <div *ngIf="profileForm.get('photoURL')?.value && profileForm.get('photoURL')?.valid" 
-                     class="flex items-center space-x-3">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">Vista previa:</span>
-                  <img 
-                    [src]="profileForm.get('photoURL')?.value" 
-                    alt="Vista previa"
-                    class="h-12 w-12 rounded-full object-cover"
-                    (error)="onImageError($event)"
-                  />
                 </div>
 
                 <!-- Botones -->
