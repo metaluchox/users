@@ -83,16 +83,42 @@ import { MainNavComponent } from '../shared/main-nav.component';
                   <label for="photoURL" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     URL de la foto de perfil
                   </label>
-                  <input
-                    type="url"
-                    id="photoURL"
-                    formControlName="photoURL"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="https://ejemplo.com/tu-foto.jpg"
-                  />
+                  <div class="flex space-x-2">
+                    <input
+                      type="url"
+                      id="photoURL"
+                      formControlName="photoURL"
+                      class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="https://ejemplo.com/tu-foto.jpg"
+                    />
+                    <input
+                      type="file"
+                      id="imageUpload"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onImageUpload($event)"
+                    />
+                    <button
+                      type="button"
+                      (click)="triggerImageUpload()"
+                      class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
+                      title="Subir imagen"
+                    >
+                      📷 Subir
+                    </button>
+                  </div>
                   <div *ngIf="profileForm.get('photoURL')?.touched && profileForm.get('photoURL')?.errors?.['pattern']" 
                        class="text-red-600 text-sm mt-1">
                     URL inválida
+                  </div>
+                  <div *ngIf="uploadMessage" class="mt-2 p-2 rounded-md text-sm" 
+                       [class.bg-green-100]="uploadMessage.type === 'success'"
+                       [class.text-green-800]="uploadMessage.type === 'success'"
+                       [class.bg-red-100]="uploadMessage.type === 'error'"
+                       [class.text-red-800]="uploadMessage.type === 'error'"
+                       [class.bg-blue-100]="uploadMessage.type === 'info'"
+                       [class.text-blue-800]="uploadMessage.type === 'info'">
+                    {{ uploadMessage.text }}
                   </div>
                 </div>
 
@@ -136,6 +162,7 @@ export class UserComponent implements OnInit {
   isLoading: boolean = false;
   isUpdating: boolean = false;
   updateMessage: { type: 'success' | 'error', text: string } | null = null;
+  uploadMessage: { type: 'success' | 'error' | 'info', text: string } | null = null;
 
   profileForm: FormGroup = this.fb.group({
     displayName: ['', [Validators.required, Validators.minLength(2)]],
@@ -217,11 +244,6 @@ export class UserComponent implements OnInit {
     }
   }
 
-  // Restablece el formulario a los valores originales
-  resetForm() {
-    this.initializeForm();
-    this.updateMessage = null;
-  }
 
   // Actualiza el perfil del usuario
   async updateProfile() {
@@ -292,6 +314,77 @@ export class UserComponent implements OnInit {
   // Maneja errores de carga de imagen
   onImageError(event: any) {
     event.target.style.display = 'none';
+  }
+
+  // Activa el input de archivo
+  triggerImageUpload() {
+    const fileInput = document.getElementById('imageUpload') as HTMLInputElement;
+    fileInput?.click();
+  }
+
+  // Maneja la subida de imagen
+  onImageUpload(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      this.uploadMessage = {
+        type: 'error',
+        text: 'Por favor selecciona un archivo de imagen válido'
+      };
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      this.uploadMessage = {
+        type: 'error',
+        text: 'La imagen debe ser menor a 5MB'
+      };
+      return;
+    }
+
+    this.uploadMessage = {
+      type: 'info',
+      text: 'Subiendo imagen...'
+    };
+
+    // Convertir a base64 para vista previa y/o subir a servicio
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64String = e.target?.result as string;
+      
+      // Por ahora, solo mostrar la imagen en base64
+      // En producción deberías subirla a un servicio como Firebase Storage
+      this.profileForm.patchValue({
+        photoURL: base64String
+      });
+      
+      this.uploadMessage = {
+        type: 'success',
+        text: 'Imagen cargada exitosamente'
+      };
+
+      // Ocultar mensaje después de 3 segundos
+      setTimeout(() => {
+        this.uploadMessage = null;
+      }, 3000);
+    };
+
+    reader.onerror = () => {
+      this.uploadMessage = {
+        type: 'error',
+        text: 'Error al procesar la imagen'
+      };
+    };
+
+    reader.readAsDataURL(file);
+
+
+
+    
   }
 
   // Redirige al perfil del usuario en sesión
