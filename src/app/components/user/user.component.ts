@@ -24,7 +24,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
     </style>
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
       <app-main-nav
-        [title]="isEditingOtherUser ? 'Editar Usuario' : 'Usuario'"
+        [title]="'Usuario'"
         [userData]="userData"
         [isLoading]="isLoading"
         (goToProfile)="goToIndex()"
@@ -39,7 +39,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow duration-300">
               <div class="flex flex-col items-center mb-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                  {{ isEditingOtherUser ? 'Editar Usuario' : 'Actualizar Perfil' }}
+                  {{ isEditingOtherUser ? (editingUser?.email || 'Editar Usuario') : (userData?.email || 'Actualizar Perfil') }}
                 </h3>
                 <!-- Vista previa de la imagen -->
                 <div *ngIf="profileForm.get('photoURL')?.value && profileForm.get('photoURL')?.valid">
