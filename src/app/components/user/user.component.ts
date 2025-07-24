@@ -383,6 +383,7 @@ export class UserComponent implements OnInit {
         }, 3000);
       },
       error: (error) => {
+        this.loading.stop();
         console.error('Error uploading to Cloudinary:', error);
         let errorMessage = 'Error al subir imagen a Cloudinary.';
         
