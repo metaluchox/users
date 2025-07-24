@@ -116,10 +116,9 @@ export class CloudinaryService {
     const targetFolder = options?.folder || 'users';
     formData.append('folder', targetFolder);
     
-    // Si se proporciona userId, crear un public_id único
+    // Si se proporciona userId, usar el UID como public_id (se agregará automáticamente la extensión)
     if (options?.userId) {
-      const publicId = `user_${options.userId}_${Date.now()}`;
-      formData.append('public_id', publicId);
+      formData.append('public_id', options.userId);
     }
 
     return this.http.post<CloudinaryUploadResponse>(
