@@ -19,6 +19,7 @@ import { AddComponent } from './add.component';
         [userData]="userData"
         [isLoading]="isLoading"
         (goToProfile)="goToProfile()"
+        (goToIndex)="goToIndex()"
         (goToList)="goToProfile()"
         (logout)="logout()"
       ></app-main-nav>
@@ -75,10 +76,6 @@ import { AddComponent } from './add.component';
                 </button>
               </div>
             </div>
-          </div>
-          <div *ngIf="isLoading" class="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mb-4"></div>
-            <p class="text-gray-600 dark:text-gray-400">Buscando usuarios...</p>
           </div>
 
           <div *ngIf="errorMessage && !isLoading" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
@@ -231,6 +228,10 @@ export class ListComponent implements OnInit {
 
   goToProfile() {
     this.router.navigate(['/user']);
+  }
+
+  goToIndex() {
+    this.router.navigate(['/index']);
   }
 
   async logout() {

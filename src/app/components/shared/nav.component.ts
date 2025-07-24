@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ThemeToggleComponent } from '../shared/theme-toggle.component';
+import { User as UserInterface } from '../user/user.interface';
 
 @Component({
   selector: 'app-nav',
@@ -51,19 +52,27 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
             <app-theme-toggle></app-theme-toggle>
             
             <!-- User Profile Section -->
-            <div class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 cursor-pointer group"
+            <div *ngIf="userData" 
+                 class="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 cursor-pointer group"
                  (click)="onGoToProfile()">
               <div class="relative">
-                <div class="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 hover:scale-110 transition-all duration-300 shadow-md hover:shadow-lg">
+                <img 
+                  *ngIf="userData.photoURL" 
+                  [src]="userData.photoURL" 
+                  [alt]="userData.displayName || userData.email"
+                  class="h-9 w-9 rounded-full ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 hover:scale-110 transition-all duration-300 shadow-md hover:shadow-lg"
+                />
+                <div *ngIf="!userData.photoURL" 
+                     class="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 hover:scale-110 transition-all duration-300 shadow-md hover:shadow-lg">
                   <span class="text-white text-sm font-semibold">
-                    U
+                    {{ getInitials(userData.displayName || userData.email) }}
                   </span>
                 </div>
                 <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white dark:border-gray-900"></div>
               </div>
               <div class="hidden lg:block">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
-                  Usuario
+                  {{ userData.displayName || userData.email }}
                 </span>
               </div>
             </div>
@@ -103,12 +112,20 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
         <div class="md:hidden" [class.hidden]="!isMobileMenuOpen">
           <div class="px-2 pt-2 pb-3 space-y-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 animate-slide-down">
             <!-- Mobile User Profile -->
-            <div class="flex items-center space-x-3 px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+            <div *ngIf="userData" 
+                 class="flex items-center space-x-3 px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
                  (click)="onGoToProfile(); toggleMobileMenu()">
               <div class="relative">
-                <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-blue-500 hover:scale-110 transition-transform duration-300 shadow-md">
+                <img 
+                  *ngIf="userData.photoURL" 
+                  [src]="userData.photoURL" 
+                  [alt]="userData.displayName || userData.email"
+                  class="h-10 w-10 rounded-full ring-2 ring-blue-500 hover:scale-110 transition-transform duration-300 shadow-md"
+                />
+                <div *ngIf="!userData.photoURL" 
+                     class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-blue-500 hover:scale-110 transition-transform duration-300 shadow-md">
                   <span class="text-white font-semibold">
-                    U
+                    {{ getInitials(userData.displayName || userData.email) }}
                   </span>
                 </div>
                 <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white dark:border-gray-900"></div>
@@ -116,7 +133,7 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
               <div>
                 <p class="text-sm font-medium text-gray-900 dark:text-white">Perfil</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
-                  Usuario
+                  {{ userData.displayName || userData.email }}
                 </p>
               </div>
             </div>
@@ -139,6 +156,7 @@ import { ThemeToggleComponent } from '../shared/theme-toggle.component';
 })
 export class NavComponent {
   @Input() title: string = '';
+  @Input() userData: UserInterface | null = null;
   @Output() goToProfile = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
 
@@ -157,5 +175,14 @@ export class NavComponent {
 
   onLogout(): void {
     this.logout.emit();
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    const names = name.split(' ');
+    if (names.length >= 2) {
+      return (names[0][0] + names[1][0]).toUpperCase();
+    }
+    return name[0].toUpperCase();
   }
 }

@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { NavComponent } from './nav.component';
+import { NavComponent } from '../shared/nav.component';
+import { FirebaseService } from '../../services/firebase.service';
+import { User as UserInterface } from '../user/user.interface';
 
 @Component({
   selector: 'app-index',
@@ -10,6 +12,7 @@ import { NavComponent } from './nav.component';
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <app-nav 
         [title]="'Inicio'" 
+        [userData]="userData"
         (goToProfile)="handleGoToProfile()"
         (logout)="handleLogout()">
       </app-nav>
@@ -62,19 +65,38 @@ import { NavComponent } from './nav.component';
   `
 })
 export class IndexComponent implements OnInit{
+  private firebaseService = inject(FirebaseService);
+  userData: UserInterface | null = null;
 
   constructor(private router: Router) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    await this.loadUserData();
+  }
+
+  async loadUserData(): Promise<void> {
+    try {
+      this.userData = await this.firebaseService.getCompleteUserData();
+      if (!this.userData) {
+        this.router.navigate(['/login']);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      this.router.navigate(['/login']);
+    }
   }
 
   handleGoToProfile(): void {
     this.router.navigate(['/user']);
   }
 
-  handleLogout(): void {
-    console.log('Cerrando sesión');
-    // Aquí puedes agregar la lógica de cerrar sesión
+  async handleLogout(): Promise<void> {
+    try {
+      await this.firebaseService.logout();
+      this.router.navigate(['/login']);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   }
   
 }
