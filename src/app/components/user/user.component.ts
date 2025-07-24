@@ -28,8 +28,8 @@ import { MainNavComponent } from '../shared/main-nav.component';
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Formulario de Actualización de Perfil -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+              <div class="flex flex-col items-center mb-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
                   {{ isEditingOtherUser ? 'Editar Usuario' : 'Actualizar Perfil' }}
                 </h3>
                 <!-- Vista previa de la imagen -->
@@ -37,12 +37,12 @@ import { MainNavComponent } from '../shared/main-nav.component';
                   <img 
                     [src]="profileForm.get('photoURL')?.value" 
                     alt="Vista previa"
-                    class="h-12 w-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                    class="h-12 w-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity mx-auto"
                   />
                 </div>
                 <div *ngIf="!profileForm.get('photoURL')?.value"
-                     class="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all duration-200">
-                  <span class="text-white text-sm font-semibold">
+                     class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all duration-200 mx-auto">
+                  <span class="text-white text-lg font-semibold">
                     {{ getInitials(profileForm.get('displayName')?.value || profileForm.get('email')?.value) }}
                   </span>
                 </div>
