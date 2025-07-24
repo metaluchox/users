@@ -94,11 +94,10 @@ import { AddComponent } from './add.component';
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Usuario</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Información</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rol</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  <tr *ngFor="let user of users" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <tr *ngFor="let user of users" class="hover:bg-gray-50 dark:hover:bg-gray-700" (click)="editUser(user)">
                     <td class="px-6 py-4">
                       <div class="flex items-center">
                         <div class="flex-shrink-0 h-10 w-10">

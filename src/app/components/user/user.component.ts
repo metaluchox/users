@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FirebaseService } from '../../services/firebase.service';
+import { CloudinaryService } from '../../services/cloudinary.service';
 import { User as UserInterface } from './user.interface';
 import { MainNavComponent } from '../shared/main-nav.component';
 
@@ -152,6 +153,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
 })
 export class UserComponent implements OnInit {
   private firebaseService = inject(FirebaseService);
+  private cloudinaryService = inject(CloudinaryService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
@@ -348,43 +350,55 @@ export class UserComponent implements OnInit {
 
     this.uploadMessage = {
       type: 'info',
-      text: 'Subiendo imagen...'
+      text: 'Subiendo imagen a Cloudinary...'
     };
 
-    // Convertir a base64 para vista previa y/o subir a servicio
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64String = e.target?.result as string;
-      
-      // Por ahora, solo mostrar la imagen en base64
-      // En producción deberías subirla a un servicio como Firebase Storage
-      this.profileForm.patchValue({
-        photoURL: base64String
-      });
-      
-      this.uploadMessage = {
-        type: 'success',
-        text: 'Imagen cargada exitosamente'
-      };
+    // Obtener userId para crear un identificador único
+    const currentUser = this.isEditingOtherUser ? this.editingUser : this.userData;
+    const userId = currentUser?.uid || 'user';
 
-      // Ocultar mensaje después de 3 segundos
-      setTimeout(() => {
-        this.uploadMessage = null;
-      }, 3000);
-    };
+    // Subir imagen a Cloudinary
+    this.cloudinaryService.uploadImageAndGetUrl(file, {
+      folder: 'users',
+      userId: userId
+    }).subscribe({
+      next: (imageUrl: string) => {
+        // Actualizar el formulario con la URL de Cloudinary
+        this.profileForm.patchValue({
+          photoURL: imageUrl
+        });
+        
+        this.uploadMessage = {
+          type: 'success',
+          text: 'Imagen subida a Cloudinary exitosamente'
+        };
 
-    reader.onerror = () => {
-      this.uploadMessage = {
-        type: 'error',
-        text: 'Error al procesar la imagen'
-      };
-    };
-
-    reader.readAsDataURL(file);
-
-
-
-    
+        // Ocultar mensaje después de 3 segundos
+        setTimeout(() => {
+          this.uploadMessage = null;
+        }, 3000);
+      },
+      error: (error) => {
+        console.error('Error uploading to Cloudinary:', error);
+        let errorMessage = 'Error al subir imagen a Cloudinary.';
+        
+        if (error.error && error.error.error && error.error.error.message) {
+          errorMessage = `Error: ${error.error.error.message}`;
+        } else if (error.status === 400) {
+          errorMessage = 'Error 400: Verifica el upload preset en Cloudinary.';
+        }
+        
+        this.uploadMessage = {
+          type: 'error',
+          text: errorMessage
+        };
+        
+        // Ocultar mensaje después de 5 segundos
+        setTimeout(() => {
+          this.uploadMessage = null;
+        }, 5000);
+      }
+    });
   }
 
   // Redirige al perfil del usuario en sesión
