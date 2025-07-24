@@ -78,6 +78,7 @@ import { User as UserInterface } from '../user/user.interface';
 
             <!-- Action Buttons -->
             <button
+              *ngIf="isAdmin()"
               (click)="goToList.emit()"
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 animate-pulse-glow"
             >
@@ -156,6 +157,7 @@ import { User as UserInterface } from '../user/user.interface';
 
             <!-- Mobile Action Buttons -->
             <button
+              *ngIf="isAdmin()"
               (click)="goToList.emit(); toggleMobileMenu()"
               class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
             >
@@ -201,6 +203,10 @@ export class MainNavComponent {
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  isAdmin(): boolean {
+    return this.userData?.roleIds?.includes('admin_role') ?? false;
   }
 
   getInitials(name: string): string {

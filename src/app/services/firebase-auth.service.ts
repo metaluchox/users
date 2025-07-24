@@ -27,11 +27,20 @@ export class FirebaseAuthService {
   private readonly encryption = inject(EncryptionService);
 
 
-  private currentUserSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
-  public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
+  private currentUserSubject: BehaviorSubject<User | null | undefined> = new BehaviorSubject<User | null | undefined>(undefined);
+  public currentUser$: Observable<User | null | undefined> = this.currentUserSubject.asObservable();
+  private isInitialized = false;
 
   constructor() {
+    console.log('🔥 FIREBASE AUTH - Inicializando servicio');
+    console.log('🔥 FIREBASE AUTH - Usuario inicial:', this.auth.currentUser);
+    
     onAuthStateChanged(this.auth, (user) => {
+      console.log('🔥 FIREBASE AUTH - onAuthStateChanged disparado:', user);
+      if (!this.isInitialized) {
+        this.isInitialized = true;
+        console.log('🔥 FIREBASE AUTH - Firebase inicializado completamente');
+      }
       this.currentUserSubject.next(user);
     });
   }

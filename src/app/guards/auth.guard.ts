@@ -1,6 +1,6 @@
 import {CanActivateFn, Router, ActivatedRouteSnapshot} from '@angular/router';
 import {inject} from '@angular/core';
-import {take, switchMap} from 'rxjs';
+import {take, switchMap, filter, timeout, catchError} from 'rxjs';
 import {of} from 'rxjs';
 import {environment} from '../../environments/environment';
 import { FirebaseService } from '../services/firebase.service';
@@ -26,8 +26,29 @@ export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   console.log('🔒 AUTH GUARD - Ruta actual:', currentRoute);
   console.log('🔒 AUTH GUARD - Requiere admin:', requiresAdmin);
 
+  console.log('🔒 AUTH GUARD - Iniciando observable currentUser$');
+  
   return firebaseService.currentUser$.pipe(
     take(1),
+    switchMap(user => {
+      console.log('🔒 AUTH GUARD - Usuario recibido del observable:', user);
+      
+      // Si user es undefined, Firebase aún no ha inicializado
+      if (user === undefined) {
+        console.log('🔒 AUTH GUARD - Firebase no inicializado, esperando...');
+        return firebaseService.currentUser$.pipe(
+          filter(u => u !== undefined),
+          take(1),
+          timeout(5000),
+          catchError(error => {
+            console.log('🔒 AUTH GUARD - Timeout esperando inicialización:', error);
+            return of(router.createUrlTree(['/']));
+          })
+        );
+      }
+      
+      return of(user);
+    }),
     switchMap(user => {
       const isAuthenticated = !!user;
       console.log('🔒 AUTH GUARD - Usuario autenticado:', isAuthenticated);

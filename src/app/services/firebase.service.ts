@@ -16,7 +16,7 @@ export class FirebaseService {
   
 
   // Delegación de propiedades del servicio de autenticación
-  get currentUser$(): Observable<User | null> {
+  get currentUser$(): Observable<User | null | undefined> {
     return this.authService.currentUser$;
   }
 
