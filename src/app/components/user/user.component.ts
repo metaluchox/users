@@ -101,16 +101,6 @@ import { MainNavComponent } from '../shared/main-nav.component';
                       class="hidden"
                       (change)="onImageUpload($event)"
                     />
-                    <!-- <button
-                      type="hidden"
-                      (click)="triggerImageUpload()"
-                      [disabled]="isUploading || isUpdating"
-                      class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
-                      title="Subir imagen"
-                    >
-                      <span *ngIf="!isUploading">📷 Subir imagen</span>
-                      <span *ngIf="isUploading">🔄 Subiendo...</span>
-                    </button> -->
                   </div>
                   <div *ngIf="profileForm.get('photoURL')?.touched && profileForm.get('photoURL')?.errors?.['pattern']" 
                        class="text-red-600 text-sm mt-1">
@@ -169,7 +159,6 @@ export class UserComponent implements OnInit {
   isLoading: boolean = false;
   isUpdating: boolean = false;
   isUploading: boolean = false;
-  isDeleting: boolean = false;
   updateMessage: { type: 'success' | 'error', text: string } | null = null;
   uploadMessage: { type: 'success' | 'error' | 'info', text: string } | null = null;
 
@@ -319,18 +308,7 @@ export class UserComponent implements OnInit {
       }
     }
   }
-
-  // Maneja errores de carga de imagen
-  onImageError(event: any) {
-    event.target.style.display = 'none';
-  }
-
-  // Activa el input de archivo
-  triggerImageUpload() {
-    const fileInput = document.getElementById('imageUpload') as HTMLInputElement;
-    fileInput?.click();
-  }
-
+  
   // Maneja la subida de imagen
   onImageUpload(event: any) {
     const file = event.target.files?.[0];
@@ -596,90 +574,6 @@ export class UserComponent implements OnInit {
     }
   }
 
-  // Elimina la imagen de Cloudinary
-  async deleteImage() {
-    const currentPhotoURL = this.profileForm.get('photoURL')?.value;
-    if (!currentPhotoURL) {
-      this.uploadMessage = {
-        type: 'error',
-        text: 'No hay imagen para eliminar'
-      };
-      return;
-    }
-
-    // Verificar si la imagen es de Cloudinary
-    if (!this.isCloudinaryUrl(currentPhotoURL)) {
-      this.uploadMessage = {
-        type: 'error',
-        text: 'Solo se pueden eliminar imágenes de Cloudinary'
-      };
-      return;
-    }
-
-    const publicId = this.extractPublicIdFromUrl(currentPhotoURL);
-    if (!publicId) {
-      this.uploadMessage = {
-        type: 'error',
-        text: 'No se pudo identificar la imagen en Cloudinary'
-      };
-      return;
-    }
-
-    if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
-      try {
-        this.isDeleting = true;
-        this.loading.start({ message: 'Eliminando imagen de Cloudinary...' });
-        this.uploadMessage = {
-          type: 'info',
-          text: 'Eliminando imagen de Cloudinary...'
-        };
-
-        this.cloudinaryService.deleteImage(publicId).subscribe({
-          next: () => {
-            // Limpiar el campo photoURL del formulario
-            this.profileForm.patchValue({
-              photoURL: ''
-            });
-            
-            this.uploadMessage = {
-              type: 'success',
-              text: 'Imagen eliminada de Cloudinary exitosamente'
-            };
-
-            // Ocultar mensaje después de 3 segundos
-            setTimeout(() => {
-              this.uploadMessage = null;
-            }, 3000);
-          },
-          error: (error) => {
-            console.error('Error deleting from Cloudinary:', error);
-            this.loading.stop();
-            this.uploadMessage = {
-              type: 'error',
-              text: 'Error al eliminar imagen de Cloudinary'
-            };
-            
-            // Ocultar mensaje después de 5 segundos
-            setTimeout(() => {
-              this.uploadMessage = null;
-            }, 5000);
-          },
-          complete: () => {
-            this.isDeleting = false;
-            this.loading.stop();
-          }
-        });
-      } catch (error) {
-        console.error('Error in deleteImage:', error);
-        this.isDeleting = false;
-        this.loading.stop();
-        this.uploadMessage = {
-          type: 'error',
-          text: 'Error inesperado al eliminar imagen'
-        };
-      }
-    }
-  }
 
   // Cierra sesión y redirige al login
   async logout() {
@@ -693,4 +587,5 @@ export class UserComponent implements OnInit {
       this.isLoading = false;
     }
   }
+
 }
