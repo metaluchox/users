@@ -71,7 +71,7 @@ export class FirestoreService {
   storeCompleteUserData(userInfo: UserInterface): void {
     try {
       // Almacenar información completa del usuario en localStorage
-      localStorage.setItem('completeUserData', JSON.stringify(userInfo));
+      localStorage.setItem('data', JSON.stringify(userInfo));
     } catch (error) {
       console.error('Error al almacenar datos completos del usuario:', error);
     }
@@ -80,7 +80,7 @@ export class FirestoreService {
   // Recupera datos completos del usuario desde localStorage
   getCompleteUserData(): UserInterface | null {
     try {
-      const userDataString = localStorage.getItem('completeUserData');
+      const userDataString = localStorage.getItem('data');
       if (userDataString) {
         const userData = JSON.parse(userDataString);
         // Convertir fechas de string a Date

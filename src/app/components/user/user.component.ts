@@ -289,7 +289,7 @@ export class UserComponent implements OnInit {
         
         // Si estamos editando nuestro propio perfil, actualizar localStorage
         if (!this.isEditingOtherUser) {
-          localStorage.setItem('completeUserData', JSON.stringify(updatedUserData));
+          localStorage.setItem('data', JSON.stringify(updatedUserData));
           this.userData = updatedUserData;
         } else {
           // Si estamos editando otro usuario, actualizar la referencia local

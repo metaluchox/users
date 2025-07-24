@@ -106,7 +106,7 @@ export class FirebaseAuthService {
       this.loading.start();
       await signOut(this.auth);
       this.loading.stop();
-      localStorage.removeItem('completeUserData');
+      localStorage.removeItem('data');
     } catch (error) {
       this.loading.stop();
       console.error('Error al cerrar sesión:', error);
