@@ -29,6 +29,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
         [userData]="userData"
         [isLoading]="isLoading"
         (goToProfile)="goToIndex()"
+        (goToIndex)="goToIndex()"
         (goToList)="goToList()"
         (logout)="logout()"
       ></app-main-nav>

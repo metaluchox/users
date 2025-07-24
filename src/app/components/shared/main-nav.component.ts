@@ -78,6 +78,16 @@ import { User as UserInterface } from '../user/user.interface';
 
             <!-- Action Buttons -->
             <button
+              (click)="goToIndex.emit()"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+              </svg>
+              Inicio
+            </button>
+            
+            <button
               *ngIf="isAdmin()"
               (click)="goToList.emit()"
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 animate-pulse-glow"
@@ -157,6 +167,16 @@ import { User as UserInterface } from '../user/user.interface';
 
             <!-- Mobile Action Buttons -->
             <button
+              (click)="goToIndex.emit(); toggleMobileMenu()"
+              class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+              </svg>
+              Inicio
+            </button>
+            
+            <button
               *ngIf="isAdmin()"
               (click)="goToList.emit(); toggleMobileMenu()"
               class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
@@ -197,6 +217,7 @@ export class MainNavComponent {
 
   @Output() goToProfile = new EventEmitter<void>();
   @Output() goToList = new EventEmitter<void>();
+  @Output() goToIndex = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
 
   isMobileMenuOpen = false;
