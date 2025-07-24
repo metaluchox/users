@@ -38,10 +38,13 @@ import { MainNavComponent } from '../shared/main-nav.component';
                     [src]="profileForm.get('photoURL')?.value" 
                     alt="Vista previa"
                     class="h-12 w-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                    (error)="onImageError($event)"
-                    (click)="deleteImage()"
-                    title="Click para eliminar imagen"
                   />
+                </div>
+                <div *ngIf="!profileForm.get('photoURL')?.value"
+                     class="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all duration-200">
+                  <span class="text-white text-sm font-semibold">
+                    {{ getInitials(profileForm.get('displayName')?.value || profileForm.get('email')?.value) }}
+                  </span>
                 </div>
               </div>              
               <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-4">
@@ -98,8 +101,8 @@ import { MainNavComponent } from '../shared/main-nav.component';
                       class="hidden"
                       (change)="onImageUpload($event)"
                     />
-                    <button
-                      type="button"
+                    <!-- <button
+                      type="hidden"
                       (click)="triggerImageUpload()"
                       [disabled]="isUploading || isUpdating"
                       class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
@@ -107,7 +110,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
                     >
                       <span *ngIf="!isUploading">📷 Subir imagen</span>
                       <span *ngIf="isUploading">🔄 Subiendo...</span>
-                    </button>
+                    </button> -->
                   </div>
                   <div *ngIf="profileForm.get('photoURL')?.touched && profileForm.get('photoURL')?.errors?.['pattern']" 
                        class="text-red-600 text-sm mt-1">
@@ -297,7 +300,7 @@ export class UserComponent implements OnInit {
 
         this.updateMessage = {
           type: 'success',
-          text: this.isEditingOtherUser ? 'Usuario actualizado exitosamente en Firestore' : 'Perfil actualizado exitosamente en Firestore'
+          text: this.isEditingOtherUser ? 'Usuario actualizado exitosamente' : 'Perfil actualizado exitosamente'
         };
 
         // Ocultar mensaje después de 3 segundos
@@ -306,10 +309,10 @@ export class UserComponent implements OnInit {
         }, 3000);
 
       } catch (error) {
-        console.error('Error updating user in Firestore:', error);
+        console.error('Error updating user:', error);
         this.updateMessage = {
           type: 'error',
-          text: 'Error al actualizar en Firestore. Verifica tu conexión e inténtalo de nuevo.'
+          text: 'Error al actualizar. Verifica tu conexión e inténtalo de nuevo.'
         };
       } finally {
         this.isUpdating = false;
@@ -352,9 +355,67 @@ export class UserComponent implements OnInit {
       return;
     }
 
-    // Activar estado de carga
+    // Verificar si hay una imagen existente
+    const currentPhotoURL = this.profileForm.get('photoURL')?.value;
+    
+    if (currentPhotoURL && this.isCloudinaryUrl(currentPhotoURL)) {
+      // Si hay imagen existente de Cloudinary, primero eliminarla
+      this.deleteExistingImageThenUpload(file, currentPhotoURL);
+    } else {
+      // Si no hay imagen existente o no es de Cloudinary, subir directamente
+      this.uploadNewImage(file);
+    }
+  }
+
+  // Elimina imagen existente y luego sube la nueva
+  private deleteExistingImageThenUpload(file: File, currentPhotoURL: string) {
+    const publicId = this.extractPublicIdFromUrl(currentPhotoURL);
+    
+    if (!publicId) {
+      // Si no se puede extraer el publicId, subir directamente
+      this.uploadNewImage(file);
+      return;
+    }
+
+    // Activar estado de carga para eliminación
     this.isUploading = true;
-    this.loading.start({ message: 'Subiendo imagen a Cloudinary...' });
+    this.loading.start({ message: 'Eliminando imagen anterior...' });
+    this.uploadMessage = {
+      type: 'info',
+      text: 'Eliminando imagen anterior de Cloudinary...'
+    };
+
+    // Eliminar imagen existente
+    this.cloudinaryService.deleteImage(publicId).subscribe({
+      next: () => {
+        // Imagen eliminada exitosamente, ahora subir la nueva
+        this.uploadMessage = {
+          type: 'info',
+          text: 'Subiendo nueva imagen...'
+        };
+        this.loading.start({ message: 'Subiendo nueva imagen...' });
+        this.uploadNewImage(file);
+      },
+      error: (error) => {
+        console.error('Error deleting existing image:', error);
+        // Si falla la eliminación, continuar con la subida de la nueva imagen
+        this.uploadMessage = {
+          type: 'info',
+          text: 'No se pudo eliminar la imagen anterior, subiendo nueva imagen...'
+        };
+        this.uploadNewImage(file);
+      }
+    });
+  }
+
+  // Sube una nueva imagen a Cloudinary
+  private uploadNewImage(file: File) {
+    // Activar estado de carga si no está ya activo
+    if (!this.isUploading) {
+      this.isUploading = true;
+      this.loading.start({ message: 'Subiendo imagen a Cloudinary...' });
+    }
+    
     this.uploadMessage = {
       type: 'info',
       text: 'Subiendo imagen a Cloudinary...'
@@ -511,6 +572,17 @@ export class UserComponent implements OnInit {
     }
   }
 
+  // Verifica si una URL es de Cloudinary
+  private isCloudinaryUrl(url: string): boolean {
+    try {
+      // Verificar si la URL contiene el dominio de Cloudinary
+      return url.includes('res.cloudinary.com') || url.includes('cloudinary.com');
+    } catch (error) {
+      console.error('Error checking if URL is from Cloudinary:', error);
+      return false;
+    }
+  }
+
   // Extrae el public_id de una URL de Cloudinary
   private extractPublicIdFromUrl(url: string): string | null {
     try {
@@ -531,6 +603,15 @@ export class UserComponent implements OnInit {
       this.uploadMessage = {
         type: 'error',
         text: 'No hay imagen para eliminar'
+      };
+      return;
+    }
+
+    // Verificar si la imagen es de Cloudinary
+    if (!this.isCloudinaryUrl(currentPhotoURL)) {
+      this.uploadMessage = {
+        type: 'error',
+        text: 'Solo se pueden eliminar imágenes de Cloudinary'
       };
       return;
     }

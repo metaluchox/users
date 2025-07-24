@@ -62,14 +62,14 @@ import { AddComponent } from './add.component';
                 <button
                   (click)="searchUsers()"
                   [disabled]="isLoading || !searchTerm.trim()"
-                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md font-medium"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-blue-600 disabled:cursor-not-allowed text-white rounded-md font-medium"
                 >
                   {{ isLoading ? 'Buscando...' : 'Buscar' }}
                 </button>
                 <button
                   (click)="clearSearch()"
                   [disabled]="isLoading"
-                  class="px-4 py-2 bg-gray-600 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md font-medium"
+                  class="px-4 py-2 bg-blue-600 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-blue-600 disabled:cursor-not-allowed text-white rounded-md font-medium"
                 >
                   Limpiar
                 </button>
@@ -102,7 +102,7 @@ import { AddComponent } from './add.component';
                       <div class="flex items-center">
                         <div class="flex-shrink-0 h-10 w-10">
                           <img *ngIf="user.photoURL" class="h-10 w-10 rounded-full" [src]="user.photoURL" [alt]="getUserDisplayName(user)">
-                          <div *ngIf="!user.photoURL" class="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                          <div *ngIf="!user.photoURL" class="h-10 w-10 rounded-full bg-blue-300 dark:bg-purple-600 flex items-center justify-center">
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ getInitials(getUserDisplayName(user)) }}</span>
                           </div>
                         </div>
@@ -130,7 +130,7 @@ import { AddComponent } from './add.component';
                 <div class="flex items-start space-x-4">
                   <div class="flex-shrink-0">
                     <img *ngIf="user.photoURL" class="h-12 w-12 rounded-full" [src]="user.photoURL" [alt]="getUserDisplayName(user)">
-                    <div *ngIf="!user.photoURL" class="h-12 w-12 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                    <div *ngIf="!user.photoURL" class="h-12 w-12 rounded-full bg-blue-300 dark:bg-blue-600 flex items-center justify-center">
                       <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ getInitials(getUserDisplayName(user)) }}</span>
                     </div>
                   </div>
