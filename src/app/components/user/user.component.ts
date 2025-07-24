@@ -37,8 +37,10 @@ import { MainNavComponent } from '../shared/main-nav.component';
                   <img 
                     [src]="profileForm.get('photoURL')?.value" 
                     alt="Vista previa"
-                    class="h-12 w-12 rounded-full object-cover"
+                    class="h-12 w-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
                     (error)="onImageError($event)"
+                    (click)="deleteImage()"
+                    title="Click para eliminar imagen"
                   />
                 </div>
               </div>              
@@ -164,6 +166,7 @@ export class UserComponent implements OnInit {
   isLoading: boolean = false;
   isUpdating: boolean = false;
   isUploading: boolean = false;
+  isDeleting: boolean = false;
   updateMessage: { type: 'success' | 'error', text: string } | null = null;
   uploadMessage: { type: 'success' | 'error' | 'info', text: string } | null = null;
 
@@ -505,6 +508,95 @@ export class UserComponent implements OnInit {
       return numbers;
     } else {
       return numbers.substring(0, 4) + ' ' + numbers.substring(4, 8);
+    }
+  }
+
+  // Extrae el public_id de una URL de Cloudinary
+  private extractPublicIdFromUrl(url: string): string | null {
+    try {
+      // URL típica: https://res.cloudinary.com/{cloud_name}/image/upload/v{version}/{folder}/{public_id}.{format}
+      const regex = /\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/;
+      const match = url.match(regex);
+      return match ? match[1] : null;
+    } catch (error) {
+      console.error('Error extracting public_id:', error);
+      return null;
+    }
+  }
+
+  // Elimina la imagen de Cloudinary
+  async deleteImage() {
+    const currentPhotoURL = this.profileForm.get('photoURL')?.value;
+    if (!currentPhotoURL) {
+      this.uploadMessage = {
+        type: 'error',
+        text: 'No hay imagen para eliminar'
+      };
+      return;
+    }
+
+    const publicId = this.extractPublicIdFromUrl(currentPhotoURL);
+    if (!publicId) {
+      this.uploadMessage = {
+        type: 'error',
+        text: 'No se pudo identificar la imagen en Cloudinary'
+      };
+      return;
+    }
+
+    if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+      try {
+        this.isDeleting = true;
+        this.loading.start({ message: 'Eliminando imagen de Cloudinary...' });
+        this.uploadMessage = {
+          type: 'info',
+          text: 'Eliminando imagen de Cloudinary...'
+        };
+
+        this.cloudinaryService.deleteImage(publicId).subscribe({
+          next: () => {
+            // Limpiar el campo photoURL del formulario
+            this.profileForm.patchValue({
+              photoURL: ''
+            });
+            
+            this.uploadMessage = {
+              type: 'success',
+              text: 'Imagen eliminada de Cloudinary exitosamente'
+            };
+
+            // Ocultar mensaje después de 3 segundos
+            setTimeout(() => {
+              this.uploadMessage = null;
+            }, 3000);
+          },
+          error: (error) => {
+            console.error('Error deleting from Cloudinary:', error);
+            this.loading.stop();
+            this.uploadMessage = {
+              type: 'error',
+              text: 'Error al eliminar imagen de Cloudinary'
+            };
+            
+            // Ocultar mensaje después de 5 segundos
+            setTimeout(() => {
+              this.uploadMessage = null;
+            }, 5000);
+          },
+          complete: () => {
+            this.isDeleting = false;
+            this.loading.stop();
+          }
+        });
+      } catch (error) {
+        console.error('Error in deleteImage:', error);
+        this.isDeleting = false;
+        this.loading.stop();
+        this.uploadMessage = {
+          type: 'error',
+          text: 'Error inesperado al eliminar imagen'
+        };
+      }
     }
   }
 

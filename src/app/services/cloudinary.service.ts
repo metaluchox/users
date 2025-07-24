@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import CryptoJS from 'crypto-js';
 
 export interface CloudinaryConfig {
   cloudName: string;
@@ -282,11 +283,11 @@ export class CloudinaryService {
       .map(key => `${key}=${params[key]}`)
       .join('&');
 
-    // En una implementación real, usarías crypto para generar el SHA-1
-    // Por ahora retornamos un placeholder
-    // return crypto.createHash('sha1').update(sortedParams + this.config.apiSecret).digest('hex');
+    // Generar firma SHA-1 usando crypto-js
+    const stringToSign = sortedParams + this.config.apiSecret;
+    const signature = CryptoJS.SHA1(stringToSign).toString(CryptoJS.enc.Hex);
     
     console.warn('Signature generation should be implemented in backend for security');
-    return 'placeholder_signature';
+    return signature;
   }
 }
