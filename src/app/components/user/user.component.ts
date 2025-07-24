@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractContro
 import { FirebaseService } from '../../services/firebase.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
 import { LoadingService } from '../../services/loading.service';
+import { EncryptionService } from '../../services/encryption.service';
 import { User as UserInterface } from './user.interface';
 import { MainNavComponent } from '../shared/main-nav.component';
 
@@ -158,6 +159,7 @@ export class UserComponent implements OnInit {
   private firebaseService = inject(FirebaseService);
   private cloudinaryService = inject(CloudinaryService);
   private loading = inject(LoadingService);
+  private encryption = inject(EncryptionService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
@@ -188,9 +190,9 @@ export class UserComponent implements OnInit {
   }
 
   // Carga datos del usuario desde localStorage o Firestore
-  loadUserData() {
+  async loadUserData() {
     // Get complete user data from localStorage (usuario en sesión)
-    this.userData = this.firebaseService.getCompleteUserData();
+    this.userData = await this.firebaseService.getCompleteUserData();
     this.isEditingOtherUser = false;
     this.editingUser = null;
     
@@ -207,7 +209,7 @@ export class UserComponent implements OnInit {
       this.isLoading = true;
       
       // Cargar usuario en sesión para validaciones
-      this.userData = this.firebaseService.getCompleteUserData();
+      this.userData = await this.firebaseService.getCompleteUserData();
       if (!this.userData) {
         this.router.navigate(['/login']);
         return;
@@ -289,7 +291,7 @@ export class UserComponent implements OnInit {
         
         // Si estamos editando nuestro propio perfil, actualizar localStorage
         if (!this.isEditingOtherUser) {
-          localStorage.setItem('data', JSON.stringify(updatedUserData));
+          await this.encryption.setEncryptedItem('data', updatedUserData);
           this.userData = updatedUserData;
         } else {
           // Si estamos editando otro usuario, actualizar la referencia local

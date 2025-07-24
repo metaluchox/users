@@ -33,10 +33,14 @@ export class FirebaseService {
   async loginWithEmailAndPassword(email: string, password: string): Promise<User> {
     try {
       this.loading.start();
+      console.log('🔐 Iniciando sesión...');
       const user = await this.authService.loginWithEmailAndPassword(email, password);
+      console.log('🔐 Usuario autenticado, obteniendo datos...');
       // Obtener información completa del usuario desde Firestore
       const userInfo = await this.firestoreService.getOrCreateUserInfo(user);
-      this.firestoreService.storeCompleteUserData(userInfo);
+      console.log('🔐 Datos obtenidos, encriptando y almacenando...');
+      await this.firestoreService.storeCompleteUserData(userInfo);
+      console.log('🔐 Datos almacenados correctamente');
       this.loading.stop();
       return user;
     } catch (error) {
@@ -53,7 +57,7 @@ export class FirebaseService {
       const user = await this.authService.registerWithEmailAndPassword(email, password);
       // Crear información completa del usuario en Firestore
       const userInfo = await this.firestoreService.getOrCreateUserInfo(user);
-      this.firestoreService.storeCompleteUserData(userInfo);
+      await this.firestoreService.storeCompleteUserData(userInfo);
       this.loading.stop();
       return user;
     } catch (error) {
@@ -74,7 +78,7 @@ export class FirebaseService {
       const userInfo = await this.firestoreService.getOrCreateUserInfo(user);
       
       // Almacenar información completa del usuario
-      this.firestoreService.storeCompleteUserData(userInfo);
+      await this.firestoreService.storeCompleteUserData(userInfo);
       
       
       this.loading.stop();
@@ -103,8 +107,8 @@ export class FirebaseService {
 
   // Métodos de Firestore - delegados al FirestoreService
   // Obtiene datos completos del usuario desde localStorage
-  getCompleteUserData(): UserInterface | null {
-    return this.firestoreService.getCompleteUserData();
+  async getCompleteUserData(): Promise<UserInterface | null> {
+    return await this.firestoreService.getCompleteUserData();
   }
 
   // Actualiza información del usuario

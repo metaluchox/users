@@ -15,6 +15,7 @@ import {
 import { environment } from '../../environments/environment';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { LoadingService } from './loading.service';
+import { EncryptionService } from './encryption.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,7 @@ export class FirebaseAuthService {
   public app = initializeApp(environment.firebase);
   public auth: Auth = getAuth(this.app);
   private readonly loading = inject(LoadingService);
+  private readonly encryption = inject(EncryptionService);
 
 
   private currentUserSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
@@ -106,7 +108,8 @@ export class FirebaseAuthService {
       this.loading.start();
       await signOut(this.auth);
       this.loading.stop();
-      localStorage.removeItem('data');
+      this.encryption.removeEncryptedItem('data');
+      this.encryption.clearEncryptionKey();
     } catch (error) {
       this.loading.stop();
       console.error('Error al cerrar sesión:', error);

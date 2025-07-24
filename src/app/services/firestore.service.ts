@@ -4,6 +4,7 @@ import { User } from 'firebase/auth';
 import { User as UserInterface } from '../components/user/user.interface';
 import { FirebaseAuthService } from './firebase-auth.service';
 import { LoadingService } from './loading.service';
+import { EncryptionService } from './encryption.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ import { LoadingService } from './loading.service';
 export class FirestoreService {
   private authService = inject(FirebaseAuthService);
   private loading = inject(LoadingService);
+  private encryption = inject(EncryptionService);
   public firestore: Firestore = getFirestore(this.authService.app);
 
   constructor() {}
@@ -67,30 +69,35 @@ export class FirestoreService {
   }
 
 
-  // Almacena datos completos del usuario en localStorage
-  storeCompleteUserData(userInfo: UserInterface): void {
+  // Almacena datos completos del usuario en localStorage encriptados
+  async storeCompleteUserData(userInfo: UserInterface): Promise<void> {
     try {
-      // Almacenar información completa del usuario en localStorage
-      localStorage.setItem('data', JSON.stringify(userInfo));
+      console.log('🔐 Encriptando datos del usuario:', userInfo.email);
+      // Almacenar información completa del usuario en localStorage encriptada
+      await this.encryption.setEncryptedItem('data', userInfo);
+      console.log('🔐 Datos encriptados y almacenados en localStorage');
     } catch (error) {
-      console.error('Error al almacenar datos completos del usuario:', error);
+      console.error('❌ Error al almacenar datos completos del usuario:', error);
+      throw error;
     }
   }
 
-  // Recupera datos completos del usuario desde localStorage
-  getCompleteUserData(): UserInterface | null {
+  // Recupera datos completos del usuario desde localStorage desencriptados
+  async getCompleteUserData(): Promise<UserInterface | null> {
     try {
-      const userDataString = localStorage.getItem('data');
-      if (userDataString) {
-        const userData = JSON.parse(userDataString);
+      console.log('🔐 Intentando obtener datos encriptados del localStorage');
+      const userData = await this.encryption.getEncryptedItem('data');
+      if (userData) {
+        console.log('🔐 Datos desencriptados correctamente:', userData.email);
         // Convertir fechas de string a Date
         userData.createdAt = new Date(userData.createdAt);
         userData.updatedAt = new Date(userData.updatedAt);
         return userData;
       }
+      console.log('🔐 No se encontraron datos en localStorage');
       return null;
     } catch (error) {
-      console.error('Error al obtener datos completos del usuario:', error);
+      console.error('❌ Error al obtener datos completos del usuario:', error);
       return null;
     }
   }

@@ -185,8 +185,8 @@ export class ListComponent implements OnInit {
   searchTerm = '';
   hasSearched = false;
 
-  ngOnInit() {
-    this.userData = this.firebaseService.getCompleteUserData();
+  async ngOnInit() {
+    this.userData = await this.firebaseService.getCompleteUserData();
     if (!this.userData) {
       this.router.navigate(['/login']);
     }
