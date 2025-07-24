@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FirebaseService } from '../../services/firebase.service';
 import { CloudinaryService } from '../../services/cloudinary.service';
+import { LoadingService } from '../../services/loading.service';
 import { User as UserInterface } from './user.interface';
 import { MainNavComponent } from '../shared/main-nav.component';
 
@@ -78,18 +79,14 @@ import { MainNavComponent } from '../shared/main-nav.component';
                     Ingrese un número de teléfono chileno válido: +56 9 seguido de 8 dígitos
                   </div>
                 </div>
-
                 <!-- URL de Foto -->
                 <div>
-                  <label for="photoURL" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    URL de la foto de perfil
-                  </label>
-                  <div class="flex space-x-2">
+                  <div class="flex">
                     <input
                       type="url"
                       id="photoURL"
                       formControlName="photoURL"
-                      class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                      class="hidden flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
                       placeholder="https://ejemplo.com/tu-foto.jpg"
                     />
                     <input
@@ -102,10 +99,12 @@ import { MainNavComponent } from '../shared/main-nav.component';
                     <button
                       type="button"
                       (click)="triggerImageUpload()"
-                      class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
+                      [disabled]="isUploading || isUpdating"
+                      class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
                       title="Subir imagen"
                     >
-                      📷 Subir
+                      <span *ngIf="!isUploading">📷 Subir imagen</span>
+                      <span *ngIf="isUploading">🔄 Subiendo...</span>
                     </button>
                   </div>
                   <div *ngIf="profileForm.get('photoURL')?.touched && profileForm.get('photoURL')?.errors?.['pattern']" 
@@ -127,7 +126,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
                 <div class="flex space-x-4 pt-4">
                   <button
                     type="submit"
-                    [disabled]="profileForm.invalid || isUpdating"
+                    [disabled]="profileForm.invalid || isUpdating || isUploading"
                     class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
                     <span *ngIf="!isUpdating">{{ isEditingOtherUser ? 'Guardar Cambios' : 'Actualizar Perfil' }}</span>
@@ -154,6 +153,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
 export class UserComponent implements OnInit {
   private firebaseService = inject(FirebaseService);
   private cloudinaryService = inject(CloudinaryService);
+  private loading = inject(LoadingService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
@@ -163,6 +163,7 @@ export class UserComponent implements OnInit {
   isEditingOtherUser: boolean = false;
   isLoading: boolean = false;
   isUpdating: boolean = false;
+  isUploading: boolean = false;
   updateMessage: { type: 'success' | 'error', text: string } | null = null;
   uploadMessage: { type: 'success' | 'error' | 'info', text: string } | null = null;
 
@@ -348,6 +349,9 @@ export class UserComponent implements OnInit {
       return;
     }
 
+    // Activar estado de carga
+    this.isUploading = true;
+    this.loading.start({ message: 'Subiendo imagen a Cloudinary...' });
     this.uploadMessage = {
       type: 'info',
       text: 'Subiendo imagen a Cloudinary...'
@@ -397,6 +401,11 @@ export class UserComponent implements OnInit {
         setTimeout(() => {
           this.uploadMessage = null;
         }, 5000);
+      },
+      complete: () => {
+        // Desactivar estado de carga
+        this.isUploading = false;
+        this.loading.stop();
       }
     });
   }
