@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore, collection, getDocs, addDoc, query, where } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, updateDoc, Firestore, collection, getDocs, addDoc, query, where, orderBy } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { User as UserInterface } from '../components/user/user.interface';
 import { FirebaseAuthService } from './firebase-auth.service';
@@ -209,8 +209,8 @@ export class FirestoreService {
       const usersCollection = collection(this.firestore, 'users');
       const users: UserInterface[] = [];
       
-      // Como Firestore no soporta búsqueda por texto completo, obtenemos todos los usuarios y filtramos
-      const usersSnapshot = await getDocs(usersCollection);
+      const q = query(usersCollection, orderBy('email'));
+      const usersSnapshot = await getDocs(q);
       
       const searchLower = searchTerm.toLowerCase().trim();
       

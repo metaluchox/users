@@ -137,6 +137,13 @@ import { MainNavComponent } from '../shared/main-nav.component';
                     <span *ngIf="!isUpdating">{{ isEditingOtherUser ? 'Guardar Cambios' : 'Actualizar Perfil' }}</span>
                     <span *ngIf="isUpdating">{{ isEditingOtherUser ? 'Guardando...' : 'Actualizando...' }}</span>
                   </button>
+                  <button
+                    type="button"
+                    (click)="goToIndex()"
+                    class="flex-1 bg-green-600 hover:bg-green-700 hover:scale-105 active:scale-95 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                  >
+                    Inicio
+                  </button>
                 </div>
               </form>
 
@@ -466,7 +473,7 @@ export class UserComponent implements OnInit {
 
   // Redirige al perfil del usuario en sesión
   goToIndex() {
-    this.router.navigate(['/user']);
+    this.router.navigate(['/index']);
   }
 
   // Redirige a la lista
