@@ -8,12 +8,40 @@ import { User as UserInterface } from '../user/user.interface';
   standalone: true,
   imports: [CommonModule, ThemeToggleComponent],
   template: `
+    <style>
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6); }
+      }
+      @keyframes slide-down {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes title-shimmer {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+      }
+      .animate-pulse-glow {
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+      .animate-slide-down {
+        animation: slide-down 0.3s ease-out;
+      }
+      .title-shimmer {
+        background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 25%, #06b6d4 50%, #8b5cf6 75%, #3b82f6 100%);
+        background-size: 200% auto;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: title-shimmer 3s linear infinite;
+      }
+    </style>
     <nav class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b border-gray-200/20 dark:border-gray-700/20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Logo/Title Section -->
           <div class="flex items-center space-x-4">
-            <h1 class="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 class="text-xl lg:text-2xl font-bold title-shimmer hover:scale-105 transition-transform duration-300 cursor-default">
               {{ title || 'Dashboard' }}
             </h1>
           </div>
@@ -31,10 +59,10 @@ import { User as UserInterface } from '../user/user.interface';
                   *ngIf="userData.photoURL" 
                   [src]="userData.photoURL" 
                   [alt]="userData.displayName || userData.email"
-                  class="h-9 w-9 rounded-full ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all duration-200"
+                  class="h-9 w-9 rounded-full ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 hover:scale-110 transition-all duration-300 shadow-md hover:shadow-lg"
                 />
                 <div *ngIf="!userData.photoURL" 
-                     class="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all duration-200">
+                     class="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 hover:scale-110 transition-all duration-300 shadow-md hover:shadow-lg">
                   <span class="text-white text-sm font-semibold">
                     {{ getInitials(userData.displayName || userData.email) }}
                   </span>
@@ -51,7 +79,7 @@ import { User as UserInterface } from '../user/user.interface';
             <!-- Action Buttons -->
             <button
               (click)="goToList.emit()"
-              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 animate-pulse-glow"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -62,7 +90,7 @@ import { User as UserInterface } from '../user/user.interface';
             <button
               (click)="logout.emit()"
               [disabled]="isLoading"
-              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -98,7 +126,7 @@ import { User as UserInterface } from '../user/user.interface';
 
         <!-- Mobile Menu -->
         <div class="md:hidden" [class.hidden]="!isMobileMenuOpen">
-          <div class="px-2 pt-2 pb-3 space-y-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+          <div class="px-2 pt-2 pb-3 space-y-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 animate-slide-down">
             <!-- Mobile User Profile -->
             <div *ngIf="userData" 
                  class="flex items-center space-x-3 px-3 py-3 rounded-lg bg-gray-50 dark:bg-gray-800 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
@@ -108,10 +136,10 @@ import { User as UserInterface } from '../user/user.interface';
                   *ngIf="userData.photoURL" 
                   [src]="userData.photoURL" 
                   [alt]="userData.displayName || userData.email"
-                  class="h-10 w-10 rounded-full ring-2 ring-blue-500"
+                  class="h-10 w-10 rounded-full ring-2 ring-blue-500 hover:scale-110 transition-transform duration-300 shadow-md"
                 />
                 <div *ngIf="!userData.photoURL" 
-                     class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-blue-500">
+                     class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-blue-500 hover:scale-110 transition-transform duration-300 shadow-md">
                   <span class="text-white font-semibold">
                     {{ getInitials(userData.displayName || userData.email) }}
                   </span>
@@ -129,7 +157,7 @@ import { User as UserInterface } from '../user/user.interface';
             <!-- Mobile Action Buttons -->
             <button
               (click)="goToList.emit(); toggleMobileMenu()"
-              class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm transition-all duration-200"
+              class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -140,7 +168,7 @@ import { User as UserInterface } from '../user/user.interface';
             <button
               (click)="logout.emit(); toggleMobileMenu()"
               [disabled]="isLoading"
-              class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>

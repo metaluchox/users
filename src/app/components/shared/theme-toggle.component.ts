@@ -7,16 +7,44 @@ import { ThemeService, Theme } from '../../services/theme.service';
   standalone: true,
   imports: [CommonModule],
   template: `
+    <style>
+      @keyframes icon-rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(180deg); }
+      }
+      @keyframes slide-up {
+        from { opacity: 0; transform: translateY(10px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes bounce-in {
+        0% { transform: scale(0.3); opacity: 0; }
+        50% { transform: scale(1.05); }
+        70% { transform: scale(0.9); }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .icon-transition {
+        transition: all 0.3s ease-in-out;
+      }
+      .icon-rotate {
+        animation: icon-rotate 0.5s ease-in-out;
+      }
+      .dropdown-enter {
+        animation: slide-up 0.2s ease-out;
+      }
+      .check-bounce {
+        animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+    </style>
     <div class="relative">
       <button
         (click)="toggleDropdown()"
-        class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors duration-200"
+        class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 hover:scale-110 active:scale-95 transition-all duration-200 shadow-sm hover:shadow-md"
         [attr.aria-label]="'Cambiar tema actual: ' + getCurrentThemeLabel()"
       >
         <!-- Sol (Light) -->
         <svg 
           *ngIf="themeService.getEffectiveTheme() === 'light'" 
-          class="w-5 h-5 text-gray-700 dark:text-gray-300" 
+          class="w-5 h-5 text-gray-700 dark:text-gray-300 icon-transition hover:text-yellow-500 dark:hover:text-yellow-400" 
           fill="currentColor" 
           viewBox="0 0 20 20"
         >
@@ -26,7 +54,7 @@ import { ThemeService, Theme } from '../../services/theme.service';
         <!-- Luna (Dark) -->
         <svg 
           *ngIf="themeService.getEffectiveTheme() === 'dark'" 
-          class="w-5 h-5 text-gray-700 dark:text-gray-300" 
+          class="w-5 h-5 text-gray-700 dark:text-gray-300 icon-transition hover:text-purple-500 dark:hover:text-purple-400" 
           fill="currentColor" 
           viewBox="0 0 20 20"
         >
@@ -37,13 +65,13 @@ import { ThemeService, Theme } from '../../services/theme.service';
       <!-- Dropdown Menu -->
       <div 
         *ngIf="showDropdown" 
-        class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+        class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 dropdown-enter"
       >
         <div class="py-1">
           <button
             *ngFor="let option of themeOptions"
             (click)="selectTheme(option.value)"
-            class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between transition-colors duration-150"
+            class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between transition-all duration-150 hover:scale-[1.02] hover:pl-5"
             [class.bg-gray-100]="themeService.getCurrentTheme() === option.value && themeService.getEffectiveTheme() === 'light'"
             [class.dark:bg-gray-700]="themeService.getCurrentTheme() === option.value && themeService.getEffectiveTheme() === 'dark'"
           >
@@ -64,7 +92,7 @@ import { ThemeService, Theme } from '../../services/theme.service';
             </div>
             <svg 
               *ngIf="themeService.getCurrentTheme() === option.value" 
-              class="w-4 h-4 text-indigo-600 dark:text-indigo-400" 
+              class="w-4 h-4 text-indigo-600 dark:text-indigo-400 check-bounce" 
               fill="currentColor" 
               viewBox="0 0 20 20"
             >
@@ -104,6 +132,14 @@ export class ThemeToggleComponent {
 
   public toggleDropdown(): void {
     this.showDropdown = !this.showDropdown;
+    // Trigger icon rotation animation
+    if (this.showDropdown) {
+      const icons = document.querySelectorAll('.icon-transition');
+      icons.forEach(icon => {
+        icon.classList.add('icon-rotate');
+        setTimeout(() => icon.classList.remove('icon-rotate'), 500);
+      });
+    }
   }
 
   public closeDropdown(): void {

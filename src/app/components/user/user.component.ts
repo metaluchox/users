@@ -13,6 +13,15 @@ import { MainNavComponent } from '../shared/main-nav.component';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MainNavComponent],
   template: `
+    <style>
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
+      }
+    </style>
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
       <app-main-nav
         [title]="isEditingOtherUser ? 'Editar Usuario' : 'Usuario'"
@@ -27,7 +36,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
         <div class="px-4 py-6 sm:px-0">
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Formulario de Actualización de Perfil -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow duration-300">
               <div class="flex flex-col items-center mb-6">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
                   {{ isEditingOtherUser ? 'Editar Usuario' : 'Actualizar Perfil' }}
@@ -37,11 +46,11 @@ import { MainNavComponent } from '../shared/main-nav.component';
                   <img 
                     [src]="profileForm.get('photoURL')?.value" 
                     alt="Vista previa"
-                    class="h-12 w-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity mx-auto"
+                    class="h-12 w-12 rounded-full object-cover cursor-pointer hover:opacity-80 hover:scale-110 transition-all duration-300 mx-auto shadow-lg hover:shadow-xl ring-2 ring-transparent hover:ring-indigo-300"
                   />
                 </div>
                 <div *ngIf="!profileForm.get('photoURL')?.value"
-                     class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 transition-all duration-200 mx-auto">
+                     class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-200 dark:ring-gray-700 group-hover:ring-blue-500 hover:scale-110 transition-all duration-300 mx-auto shadow-lg hover:shadow-xl cursor-pointer">
                   <span class="text-white text-lg font-semibold">
                     {{ getInitials(profileForm.get('displayName')?.value || profileForm.get('email')?.value) }}
                   </span>
@@ -57,7 +66,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
                     type="text"
                     id="displayName"
                     formControlName="displayName"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition-all duration-200 hover:border-indigo-400 focus:scale-[1.02] focus:shadow-lg"
                     placeholder="Tu nombre completo"
                   />
                   <div *ngIf="profileForm.get('displayName')?.touched && profileForm.get('displayName')?.errors?.['required']" 
@@ -76,7 +85,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
                     id="phone"
                     formControlName="phone"
 (input)="formatPhoneInput($event)"
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition-all duration-200 hover:border-indigo-400 focus:scale-[1.02] focus:shadow-lg"
                     placeholder="+56 9 1234 5678"
                   />
                   <div *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors?.['invalidChilePhone']" 
@@ -106,7 +115,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
                        class="text-red-600 text-sm mt-1">
                     URL inválida
                   </div>
-                  <div *ngIf="uploadMessage" class="mt-2 p-2 rounded-md text-sm" 
+                  <div *ngIf="uploadMessage" class="mt-2 p-2 rounded-md text-sm animate-fade-in" 
                        [class.bg-green-100]="uploadMessage.type === 'success'"
                        [class.text-green-800]="uploadMessage.type === 'success'"
                        [class.bg-red-100]="uploadMessage.type === 'error'"
@@ -122,7 +131,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
                   <button
                     type="submit"
                     [disabled]="profileForm.invalid || isUpdating || isUploading"
-                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 hover:scale-105 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:scale-100 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <span *ngIf="!isUpdating">{{ isEditingOtherUser ? 'Guardar Cambios' : 'Actualizar Perfil' }}</span>
                     <span *ngIf="isUpdating">{{ isEditingOtherUser ? 'Guardando...' : 'Actualizando...' }}</span>
@@ -131,7 +140,7 @@ import { MainNavComponent } from '../shared/main-nav.component';
               </form>
 
               <!-- Mensaje de éxito/error -->
-              <div *ngIf="updateMessage" class="mt-4 p-3 rounded-md" 
+              <div *ngIf="updateMessage" class="mt-4 p-3 rounded-md animate-fade-in" 
                    [class.bg-green-100]="updateMessage.type === 'success'"
                    [class.text-green-800]="updateMessage.type === 'success'"
                    [class.bg-red-100]="updateMessage.type === 'error'"
